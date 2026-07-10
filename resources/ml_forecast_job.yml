@@ -1,0 +1,101 @@
+# =============================================================================
+# resources/ml_forecast_job.yml  —  JOB que treina o modelo de forecast
+# =============================================================================
+#
+# Este arquivo declara UM recurso do tipo "job" (Lakeflow Jobs / Workflows).
+# O job executa o notebook ml/forecast_sales.py em um schedule.
+#
+# Como ler: resources > jobs > <chave_interna> > { propriedades do job }
+# A <chave_interna> (aqui "forecast_sales_job") é como você o referencia:
+#   databricks bundle run forecast_sales_job -t dev
+# =============================================================================
+resources:
+  jobs:
+    forecast_sales_job:
+
+      # Nome exibido na UI. ${bundle.target} injeta "dev"/"prd" para diferenciar.
+      name: "[${bundle.target}] HPN • Forecast de Vendas"
+
+      # -----------------------------------------------------------------------
+      # TAREFAS: um job tem 1+ tasks. Aqui, uma única task que roda o notebook.
+      # -----------------------------------------------------------------------
+      tasks:
+        - task_key: train_forecast          # identificador da task dentro do job
+
+          notebook_task:
+            # Caminho RELATIVO a este bundle. O deploy sobe o notebook e ajusta
+            # o caminho no workspace automaticamente.
+            notebook_path: ../ml/forecast_sales.py
+
+            # Parâmetros lidos no notebook via dbutils.widgets.get(...).
+            # Passamos o catálogo do ambiente para o notebook não ter hardcode.
+            base_parameters:
+              catalog: ${var.catalog}
+              horizon_months: "6"
+
+          # ---------------------------------------------------------------------
+          # COMPUTE: onde a task roda. Duas opções (escolha uma):
+          #
+          # (A) SERVERLESS (mais simples, recomendado p/ começar): basta declarar
+          #     um 'environment' com as libs. Descomente o bloco environments no
+          #     fim do arquivo e a linha abaixo, e REMOVA o job_cluster.
+          # environment_key: forecast_env
+          #
+          # (B) JOB CLUSTER dedicado (mais controle). Usado abaixo para você ver
+          #     como é. Sobe um cluster efêmero só para o job e o encerra ao fim.
+          # ---------------------------------------------------------------------
+          job_cluster_key: forecast_cluster
+
+          # Bibliotecas Python instaladas no cluster para este notebook.
+          libraries:
+            - pypi:
+                package: "prophet==1.1.5"
+            - pypi:
+                package: "mlflow>=2.16"
+
+      # -----------------------------------------------------------------------
+      # DEFINIÇÃO DO JOB CLUSTER (referenciado por job_cluster_key acima)
+      # -----------------------------------------------------------------------
+      job_clusters:
+        - job_cluster_key: forecast_cluster
+          new_cluster:
+            spark_version: "15.4.x-cpu-ml-scala2.12"   # runtime ML (traz mlflow etc.)
+            node_type_id: "Standard_DS3_v2"            # tipo de VM no Azure
+            num_workers: 1
+            data_security_mode: "SINGLE_USER"          # necessário p/ acessar Unity Catalog
+
+      # -----------------------------------------------------------------------
+      # SCHEDULE: quando roda. Em mode:development o bundle PAUSA isto sozinho.
+      # Cron no formato Quartz (segundo minuto hora dia mês dia-semana).
+      # "0 0 5 * * ?" = todo dia às 05:00.
+      # -----------------------------------------------------------------------
+      schedule:
+        quartz_cron_expression: "0 0 5 * * ?"
+        timezone_id: "America/Sao_Paulo"
+
+      # -----------------------------------------------------------------------
+      # NOTIFICAÇÃO em caso de falha.
+      # -----------------------------------------------------------------------
+      email_notifications:
+        on_failure:
+          - ${var.notification_email}
+
+      # -----------------------------------------------------------------------
+      # TAGS: essenciais para FinOps (atribuição de custo por domínio/projeto).
+      # Aparecem em system.billing.usage.
+      # -----------------------------------------------------------------------
+      tags:
+        projeto: hpn_bi_genie
+        dominio: comercial
+        ambiente: ${bundle.target}
+
+# ---------------------------------------------------------------------------
+# (A) Bloco de ambiente serverless — descomente para usar em vez do job_cluster.
+# environments:
+#   - environment_key: forecast_env
+#     spec:
+#       client: "1"
+#       dependencies:
+#         - prophet==1.1.5
+#         - mlflow>=2.16
+# ---------------------------------------------------------------------------

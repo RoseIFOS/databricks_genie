@@ -1,0 +1,41 @@
+# =============================================================================
+# resources/app.yml  —  o DATABRICKS APP como recurso do bundle
+# =============================================================================
+#
+# Declara o Databricks App para que o bundle o crie/atualize junto com o resto.
+# NÃO confundir com app/app.yaml:
+#   - resources/app.yml  (ESTE)  = COMO o bundle implanta o app (deploy).
+#   - app/app.yaml               = COMO o app roda (command + env de runtime).
+#
+# Recurso relativamente novo em bundles; requer Databricks CLI recente.
+# =============================================================================
+resources:
+  apps:
+    hpn_bi_chat:                          # chave interna (para bundle run/deploy)
+
+      # Nome do app no workspace (só minúsculas, números e hífen).
+      name: "hpn-bi-chat-${bundle.target}"
+
+      description: "BI Conversacional HPN — chats Comercial e Financeiro (Genie)."
+
+      # Pasta com o código do app. O bundle sincroniza e implanta este diretório.
+      source_code_path: ../app
+
+      # -----------------------------------------------------------------------
+      # RECURSOS QUE O APP CONSOME. O bundle concede as permissões e injeta
+      # os identificadores para o código do app (via variáveis de ambiente/SDK).
+      # -----------------------------------------------------------------------
+      resources:
+        # SQL Warehouse usado pelo Genie e por consultas do app.
+        - name: "sql-warehouse"
+          sql_warehouse:
+            id: ${var.warehouse_id}
+            permission: "CAN_USE"
+
+        # OBS: os endpoints de Model Serving (forecast/causal/reco) e a instância
+        # LakeBase também podem ser declarados aqui como recursos do app assim
+        # que existirem. Ex. (descomente quando criar):
+        # - name: "forecast-endpoint"
+        #   serving_endpoint:
+        #     name: "hpn-forecast-sales"
+        #     permission: "CAN_QUERY"

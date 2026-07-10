@@ -1,0 +1,89 @@
+# =============================================================================
+# METRIC VIEW — FINANCEIRO (DRE / Income Statement)
+# Tradução das medidas DAX financeiras (_Key Measures, displayFolder _Income Statement).
+# Fonte: gold.fct_finance (scenario = actual | budget) + dim_account (sign).
+# =============================================================================
+version: "0.1"
+
+source: hpn_prd.gold.fct_finance
+
+joins:
+  - name: account
+    source: hpn_prd.gold.dim_account
+    "on": source.account_key = account.account_key
+  - name: account_header
+    source: hpn_prd.gold.dim_account_header
+    "on": account.account_header_key = account_header.account_header_key
+  - name: organization
+    source: hpn_prd.gold.dim_organization
+    "on": source.organization_key = organization.organization_key
+  - name: department
+    source: hpn_prd.gold.dim_department_group
+    "on": source.department_group_key = department.department_group_key
+  - name: calendar
+    source: hpn_prd.gold.dim_calendar
+    "on": source.date_id = calendar.date_id
+
+dimensions:
+  # ---- Tempo ----
+  - name: Data
+    expr: calendar.date_id
+  - name: Ano
+    expr: calendar.year
+  - name: Mes
+    expr: calendar.month_name
+  - name: AnoMes
+    expr: calendar.year_month_number
+  # ---- Estrutura da DRE ----
+  - name: LinhaDRE
+    expr: account_header.detail
+  - name: Conta
+    expr: account.account
+  - name: SubConta
+    expr: account.account_subheader
+  # ---- Organização ----
+  - name: Organizacao
+    expr: organization.organization_name
+  - name: DepartmentGroup
+    expr: department.department_group_name
+
+measures:
+  - name: Total Amount Actual
+    expr: SUM(CASE WHEN source.scenario = 'actual' THEN source.amount * account.sign ELSE 0 END)
+    # DAX: CALCULATE(SUMX(fFinance, Amount*RELATED(dAccount[Sign])), Scenario="actual")
+
+  - name: Total Amount Budget
+    expr: SUM(CASE WHEN source.scenario = 'budget' THEN source.amount * account.sign ELSE 0 END)
+    # DAX: CALCULATE(SUMX(fFinance, Amount*RELATED(dAccount[Sign])), Scenario="budget")
+
+  - name: Budget Deviation
+    expr: >
+      SUM(CASE WHEN source.scenario = 'actual' THEN source.amount * account.sign
+               WHEN source.scenario = 'budget' THEN -source.amount * account.sign
+               ELSE 0 END)
+    # DAX: [Total Amount Actual] - [Total Amount Budget]
+
+  - name: Budget Deviation %
+    expr: >
+      SUM(CASE WHEN source.scenario = 'actual' THEN source.amount * account.sign
+               WHEN source.scenario = 'budget' THEN -source.amount * account.sign
+               ELSE 0 END)
+      / NULLIF(ABS(SUM(CASE WHEN source.scenario = 'budget' THEN source.amount * account.sign ELSE 0 END)), 0)
+    # DAX: DIVIDE([Budget Deviation], ABS([Total Amount Budget]))
+
+  - name: "% Vertical (VA)"
+    # Participação da linha sobre a receita bruta (AccountHeaderKey = 3 no modelo original).
+    # A base é calculada como total actual sem filtro de conta; ajuste o header conforme seu plano.
+    expr: >
+      SUM(CASE WHEN source.scenario = 'actual' THEN source.amount * account.sign ELSE 0 END)
+      / NULLIF(SUM(CASE WHEN source.scenario = 'actual' AND account_header.account_header_key = 3
+                        THEN source.amount * account.sign ELSE 0 END), 0)
+    # DAX: divide([Total Amount Actual], vallgrosssales)  (% VA)
+
+# -----------------------------------------------------------------------------
+# NOTAS
+# - % Horizontal (% HA, variação vs mês anterior) e subtotais hierárquicos de DRE
+#   (medidas com ISINSCOPE/SWITCH no DAX) dependem de contexto de linha da matriz.
+#   No Genie/app trate via consultas com window (LAG por mês) — ver 02_functions.sql.
+# - O acesso a este metric view deve ser restrito ao grupo grp_financeiro (ver 03_rls.sql).
+# =============================================================================

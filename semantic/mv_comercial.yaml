@@ -1,0 +1,137 @@
+# =============================================================================
+# METRIC VIEW — COMERCIAL
+# Tradução das medidas DAX de vendas (_Key Measures) para Unity Catalog.
+# Criação:
+#   CREATE VIEW hpn_prd.semantic.mv_comercial
+#   (usar a UI do Catalog Explorer > Create > Metric View, colando este YAML,
+#    ou via Databricks Asset Bundle / API).
+# Fonte: gold.v_sales_txn (transações unificadas venda/devolução).
+# =============================================================================
+version: "0.1"
+
+source: hpn_prd.gold.v_sales_txn
+
+joins:
+  - name: customer
+    source: hpn_prd.gold.dim_customer
+    "on": source.customer_key = customer.customer_key
+  - name: product
+    source: hpn_prd.gold.dim_product
+    "on": source.product_key = product.product_key
+  - name: calendar
+    source: hpn_prd.gold.dim_calendar
+    "on": source.date_id = calendar.date_id
+
+dimensions:
+  # ---- Tempo ----
+  - name: Data
+    expr: calendar.date_id
+  - name: Ano
+    expr: calendar.year
+  - name: Mes
+    expr: calendar.month_name
+  - name: AnoMes
+    expr: calendar.year_month_number
+  # ---- Cliente ----
+  - name: Cliente
+    expr: customer.customer
+  - name: Regiao
+    expr: customer.region
+  - name: Pais
+    expr: customer.country_name
+  - name: Cidade
+    expr: customer.city_name
+  - name: TipoNegocio
+    expr: customer.business_type
+  # ---- Produto ----
+  - name: Categoria
+    expr: product.category_name
+  - name: Subcategoria
+    expr: product.subcategory_name
+  - name: Produto
+    expr: product.product_name
+
+measures:
+  # ---- Base (aditivas) ----
+  - name: Gross Sales
+    expr: SUM(CASE WHEN txn_type = 'sale' THEN amount ELSE 0 END)
+    # DAX: SUMX(fSalesDetails, OrderQuantity * UnitPrice)
+
+  - name: Returns
+    expr: SUM(CASE WHEN txn_type = 'return' THEN amount ELSE 0 END)
+    # DAX: SUMX(fSalesReturns, ReturnQuantity * UnitPrice)
+
+  - name: Discounts
+    expr: SUM(discount_amount)
+    # DAX: SUM(fSalesDetails[Discount Amount])
+
+  - name: Cost of Sales
+    expr: SUM(CASE WHEN txn_type = 'sale' THEN quantity * unit_cost ELSE 0 END)
+    # DAX: SUMX(fSalesDetails, OrderQuantity * Unit Cost)
+
+  - name: Quantity
+    expr: SUM(CASE WHEN txn_type = 'sale' THEN quantity ELSE 0 END)
+    # DAX: SUM(fSalesDetails[OrderQuantity])
+
+  - name: Customers Current
+    expr: COUNT(DISTINCT CASE WHEN txn_type = 'sale' THEN customer_key END)
+    # DAX: DISTINCTCOUNT(fSalesDetails[CustomerKey])
+
+  # ---- Compostas ----
+  - name: Net Sales
+    expr: >
+      SUM(CASE WHEN txn_type = 'sale' THEN amount ELSE 0 END)
+      - SUM(discount_amount)
+      - SUM(CASE WHEN txn_type = 'return' THEN amount ELSE 0 END)
+    # DAX: [Gross Sales] - [Discounts] - [Returns]
+
+  - name: Gross Margin
+    expr: >
+      SUM(CASE WHEN txn_type = 'sale' THEN amount ELSE 0 END)
+      - SUM(discount_amount)
+      - SUM(CASE WHEN txn_type = 'return' THEN amount ELSE 0 END)
+      - SUM(CASE WHEN txn_type = 'sale' THEN quantity * unit_cost ELSE 0 END)
+    # DAX: [Net Sales] - [Cost of Sales]
+
+  # ---- Percentuais / ratios ----
+  - name: Gross Margin %
+    expr: >
+      (SUM(CASE WHEN txn_type = 'sale' THEN amount ELSE 0 END)
+       - SUM(CASE WHEN txn_type = 'sale' THEN quantity * unit_cost ELSE 0 END))
+      / NULLIF(SUM(CASE WHEN txn_type = 'sale' THEN amount ELSE 0 END), 0)
+    # DAX: DIVIDE([Gross Sales]-[Cost of Sales], [Gross Sales])
+
+  - name: Net Margin %
+    expr: >
+      (SUM(CASE WHEN txn_type = 'sale' THEN amount ELSE 0 END)
+       - SUM(discount_amount)
+       - SUM(CASE WHEN txn_type = 'return' THEN amount ELSE 0 END)
+       - SUM(CASE WHEN txn_type = 'sale' THEN quantity * unit_cost ELSE 0 END))
+      / NULLIF(SUM(CASE WHEN txn_type = 'sale' THEN amount ELSE 0 END)
+       - SUM(discount_amount)
+       - SUM(CASE WHEN txn_type = 'return' THEN amount ELSE 0 END), 0)
+    # DAX: DIVIDE([Net Sales]-[Cost of Sales], [Net Sales])
+
+  - name: "% Returns"
+    expr: >
+      SUM(CASE WHEN txn_type = 'return' THEN amount ELSE 0 END)
+      / NULLIF(SUM(CASE WHEN txn_type = 'sale' THEN amount ELSE 0 END), 0)
+    # DAX: DIVIDE([Returns], [Gross Sales])
+
+  - name: Avg Unit Price
+    expr: AVG(CASE WHEN txn_type = 'sale' THEN unit_price END)
+    # DAX: AVERAGE(fSalesDetails[UnitPrice])
+
+  - name: Avg Unit Cost
+    expr: AVG(CASE WHEN txn_type = 'sale' THEN unit_cost END)
+    # DAX: AVERAGE(fSalesDetails[Unit Cost])
+
+# -----------------------------------------------------------------------------
+# NOTAS DE TRADUÇÃO
+# - Time intelligence (YoY %, MoM %, Last 12M): NÃO vão no metric view.
+#   Faça via consulta com window functions ou funções SQL (ver 02_functions.sql)
+#   e cadastre como "example SQL" / trusted asset no Genie.
+# - Classificação de clientes (RFM / Champions / At Risk / Lost): materializada
+#   em gold.dim_customer_rfm + funções (ver 02_functions.sql), não como measure.
+# - Formatação (USD vs quantidade) é responsabilidade do app/Genie instructions.
+# =============================================================================

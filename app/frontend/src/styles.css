@@ -1,0 +1,38 @@
+/* Estilo base — enxuto de propósito. Substitua pelo design system da BIX
+   (ou plugue shadcn/ui + Tailwind, reaproveitando o frontend/ de referência). */
+:root { font-family: system-ui, sans-serif; color: #1a1a1a; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #f5f6f8; }
+
+.app { max-width: 960px; margin: 0 auto; padding: 16px; }
+.header { display: flex; align-items: baseline; justify-content: space-between; }
+.header h1 { font-size: 20px; }
+.user { color: #666; font-size: 13px; }
+
+.tabs { display: flex; gap: 8px; margin: 12px 0; }
+.tab { padding: 8px 16px; border: 1px solid #ddd; background: #fff; border-radius: 8px; cursor: pointer; }
+.tab.active { background: #1f6feb; color: #fff; border-color: #1f6feb; }
+
+.chat { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; }
+.messages { min-height: 320px; max-height: 60vh; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+.msg { display: flex; flex-direction: column; }
+.msg.user { align-items: flex-end; }
+.bubble { padding: 8px 12px; border-radius: 10px; background: #eef2f7; max-width: 80%; white-space: pre-wrap; }
+.msg.user .bubble { background: #1f6feb; color: #fff; }
+
+.result { margin-top: 8px; width: 100%; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; font-size: 13px; width: 100%; }
+th, td { border: 1px solid #e5e7eb; padding: 4px 8px; text-align: left; }
+th { background: #f0f2f5; }
+
+.advanced { margin-top: 8px; background: #fff7e6; padding: 8px; border-radius: 8px; }
+.sql .link { background: none; border: none; color: #1f6feb; cursor: pointer; padding: 4px 0; }
+pre { background: #0d1117; color: #c9d1d9; padding: 10px; border-radius: 8px; overflow-x: auto; font-size: 12px; }
+.feedback { margin-top: 6px; display: flex; gap: 6px; }
+.feedback button { border: 1px solid #ddd; background: #fff; border-radius: 6px; cursor: pointer; padding: 2px 8px; }
+
+.composer { display: flex; gap: 8px; margin-top: 10px; }
+.composer input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+.composer button { padding: 10px 20px; border: none; background: #1f6feb; color: #fff; border-radius: 8px; cursor: pointer; }
+.composer button:disabled { opacity: 0.5; cursor: not-allowed; }

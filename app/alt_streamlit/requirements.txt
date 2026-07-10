@@ -1,0 +1,7 @@
+# Dependências da versão ALTERNATIVA (Streamlit).
+# Os módulos compartilhados (genie_client/serving/lakebase) vêm de ../.
+streamlit>=1.38
+plotly>=5.24
+databricks-sdk>=0.36
+pandas>=2.2
+psycopg[binary]>=3.2

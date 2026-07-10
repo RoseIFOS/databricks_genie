@@ -1,0 +1,113 @@
+# =============================================================================
+# databricks.yml  —  RAIZ DO DATABRICKS ASSET BUNDLE (DAB)
+# =============================================================================
+#
+# >>> O QUE É UM ASSET BUNDLE? (leia antes de tudo) <<<
+#
+# Um "bundle" é uma forma de descrever, EM ARQUIVOS YAML versionados no Git,
+# TODOS os recursos do seu projeto Databricks (jobs, pipelines, apps, modelos,
+# schemas, etc.) e implantá-los com um único comando. É "Infraestrutura como
+# Código" para o Databricks.
+#
+# Você já integrou Databricks com Git (Repos). A diferença:
+#   - Git Repos  = sincroniza NOTEBOOKS/código para o workspace.
+#   - Asset Bundle = sincroniza código + DEFINE E CRIA os recursos (o job que
+#                    roda o notebook, o schedule, o cluster, o app, permissões...)
+#                    de forma reproduzível entre ambientes (dev/prod).
+#
+# CICLO DE VIDA (os 3 comandos que você mais vai usar):
+#   1) databricks bundle validate   -> checa a sintaxe deste arquivo
+#   2) databricks bundle deploy -t dev  -> cria/atualiza os recursos no workspace
+#   3) databricks bundle run <recurso> -t dev  -> executa um job/pipeline
+#   (e "databricks bundle destroy -t dev" remove tudo que o bundle criou)
+#
+# Pré-requisitos: Databricks CLI v0.218+ instalada e autenticada
+#   (databricks auth login --host https://adb-xxxx.azuredatabricks.net)
+#
+# ESTRUTURA DESTE BUNDLE:
+#   databricks.yml        <- este arquivo (identidade + variáveis + ambientes)
+#   resources/*.yml       <- definição de cada recurso (job, app)
+#   ml/forecast_sales.py  <- o notebook que o job executa
+#   app/                  <- código do Databricks App
+#   semantic/             <- SQL/metric views (aplicados fora do bundle, via SQL)
+# =============================================================================
+
+
+# -----------------------------------------------------------------------------
+# 1) IDENTIDADE DO BUNDLE
+#    'name' vira prefixo/namespace dos recursos e do diretório de deploy no
+#    workspace. Escolha algo curto e único.
+# -----------------------------------------------------------------------------
+bundle:
+  name: hpn_bi_genie
+
+
+# -----------------------------------------------------------------------------
+# 2) VARIÁVEIS
+#    Valores parametrizáveis, referenciados com ${var.nome} nos outros arquivos.
+#    Cada 'target' (ambiente) pode sobrescrever o 'default'.
+#    Isso é o que permite o MESMO código apontar para catálogo/warehouse
+#    diferentes em dev e prod, sem duplicar YAML.
+# -----------------------------------------------------------------------------
+variables:
+  catalog:
+    description: "Catálogo Unity Catalog do ambiente (dev/prod)."
+    default: hpn_dev
+
+  warehouse_id:
+    description: "ID do SQL Warehouse serverless usado por Genie e pelo App."
+    # Sem default de propósito: force o preenchimento por target (evita erro bobo).
+
+  notification_email:
+    description: "E-mail que recebe alertas de falha dos jobs."
+    default: roseane.silva@bix-tech.com
+
+
+# -----------------------------------------------------------------------------
+# 3) INCLUDE
+#    Em vez de um arquivo gigante, quebramos os recursos em resources/*.yml.
+#    O bundle junta tudo. Boa prática: 1 arquivo por recurso.
+# -----------------------------------------------------------------------------
+include:
+  - resources/*.yml
+
+
+# -----------------------------------------------------------------------------
+# 4) TARGETS (AMBIENTES)
+#    Cada target é um "destino" de deploy. Note os dois MODES:
+#
+#    mode: development
+#      - prefixa recursos com "[dev seu_usuario]" e os isola por usuário
+#      - pausa schedules automaticamente (não dispara job sem querer)
+#      - ideal para testar sozinha sem afetar ninguém
+#
+#    mode: production
+#      - sem prefixo, schedules ativos, valida boas práticas
+#      - normalmente roda como um service principal (não como você)
+# -----------------------------------------------------------------------------
+targets:
+
+  # ---- Ambiente de desenvolvimento (padrão) ----
+  dev:
+    mode: development
+    default: true                       # usado quando você não passa -t
+    workspace:
+      # TROQUE pela URL do SEU workspace Azure Databricks:
+      host: https://adb-0000000000000000.0.azuredatabricks.net
+    variables:
+      catalog: hpn_dev
+      warehouse_id: "REPLACE_COM_ID_DO_WAREHOUSE_DEV"
+
+  # ---- Ambiente de produção ----
+  prd:
+    mode: production
+    workspace:
+      host: https://adb-0000000000000000.0.azuredatabricks.net
+      # Em produção, o deploy vai para uma pasta compartilhada, não a sua pessoal:
+      root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
+    # Quem "assina" a execução dos recursos em produção (recomendado: SP):
+    run_as:
+      service_principal_name: "REPLACE_COM_APPLICATION_ID_DO_SP"
+    variables:
+      catalog: hpn_prd
+      warehouse_id: "REPLACE_COM_ID_DO_WAREHOUSE_PRD"

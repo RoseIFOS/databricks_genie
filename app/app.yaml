@@ -1,0 +1,43 @@
+# =============================================================================
+# Databricks App — configuração de runtime (FRONTEND PRINCIPAL: React + FastAPI)
+# Docs: https://docs.databricks.com/dev-tools/databricks-apps/
+#
+# O 'command' abaixo sobe o FastAPI (main.py), que:
+#   - expõe as rotas /api/* (Genie, Serving, LakeBase)
+#   - serve o build estático do React (frontend/dist)
+#
+# IMPORTANTE: buildar o React ANTES do deploy (gera frontend/dist):
+#   cd frontend && npm ci && npm run build
+#
+# A versão Streamlit continua disponível como ALTERNATIVA em alt_streamlit/
+# (basta trocar o command — ver alt_streamlit/app.yaml).
+# =============================================================================
+command:
+  - python
+  - main.py            # main.py lê a porta de DATABRICKS_APP_PORT e sobe o uvicorn
+
+env:
+  # IDs dos dois Genie Spaces (URL do Space: .../genie/rooms/<SPACE_ID>)
+  - name: GENIE_SPACE_COMERCIAL
+    value: "01ef000000000000comercial"
+  - name: GENIE_SPACE_FINANCEIRO
+    value: "01ef000000000000financeiro"
+
+  # Endpoints de Model Serving da Fase 6 (forecast / causal / recomendação)
+  - name: SERVING_FORECAST
+    value: "hpn-forecast-sales"
+  - name: SERVING_CAUSAL
+    value: "hpn-causal-drivers"
+  - name: SERVING_RECO
+    value: "hpn-reco-nba"
+
+  # LakeBase (estado do app)
+  - name: LAKEBASE_HOST
+    value: "instance-xxxx.database.cloud.databricks.com"
+  - name: LAKEBASE_DB
+    value: "hpn_app"
+
+# Recursos vinculados (declare também em ../resources/app.yml):
+#   - SQL Warehouse serverless, Serving endpoints, LakeBase.
+# O app roda sob um service principal; para RLS por usuário usamos OBO
+# (o FastAPI lê o header 'x-forwarded-access-token' — ver main.py).

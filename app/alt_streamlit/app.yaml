@@ -1,0 +1,26 @@
+# =============================================================================
+# [ALTERNATIVA] Runtime do Databricks App usando Streamlit.
+# Para usar ESTA versão em vez de React+FastAPI, faça o deploy apontando o
+# source_code_path do app (em ../../resources/app.yml) para esta pasta,
+# OU copie este command para o app.yaml principal.
+# =============================================================================
+command:
+  - streamlit
+  - run
+  - app.py
+
+env:
+  - name: GENIE_SPACE_COMERCIAL
+    value: "01ef000000000000comercial"
+  - name: GENIE_SPACE_FINANCEIRO
+    value: "01ef000000000000financeiro"
+  - name: SERVING_FORECAST
+    value: "hpn-forecast-sales"
+  - name: SERVING_CAUSAL
+    value: "hpn-causal-drivers"
+  - name: SERVING_RECO
+    value: "hpn-reco-nba"
+  - name: LAKEBASE_HOST
+    value: "instance-xxxx.database.cloud.databricks.com"
+  - name: LAKEBASE_DB
+    value: "hpn_app"
