@@ -16,3 +16,7 @@ dist/
 
 # Databricks
 .databricks/
+
+# Notas pessoais em PDF (contêm prints de credenciais) — nunca versionar.
+# Mantemos docs/manual_azure_novo/ (markdown) versionado.
+docs/manual_azure_antigo/
