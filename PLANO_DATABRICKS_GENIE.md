@@ -53,8 +53,14 @@ Fontes → ADF → ADLS (bronze) → Lakeflow (silver/gold em Delta/UC)
   - `hpn_dev`, `hpn_prd` → schemas `bronze`, `silver`, `gold`, `semantic`, `ml`, `app`.
 - [ ] Criar **SQL Warehouse** (serverless recomendado) para Genie e o app. Habilitar auto-stop.
 - [ ] Definir política de **tags** obrigatórias (cost center, ambiente, domínio) para FinOps desde o dia 1.
+- [ ] **Versionamento desde o dia 1 (NÃO deixar pra depois):** criar **repositório Git próprio** do projeto (GitHub) e conectar o workspace via **Databricks Git folders (Repos)** — GitHub como fonte única da verdade. Todo notebook/SQL/pipeline nasce dentro da Git folder e é commitado conforme avança. Proteger segredos no `.gitignore` (`.env`, notas/PDFs com credenciais).
 
-**Entregável:** workspace governado, UC ativo, grupos Entra sincronizados.
+**Entregável:** workspace governado, UC ativo, grupos Entra sincronizados, **e código sob controle de versão desde o primeiro artefato**.
+
+> **Lição aprendida (corrigida aqui):** versionar é prática de Fase 0, não de Fase 10.
+> Construir na UI sem commitar ("clickops") acumula trabalho não-versionado e vira
+> dívida. **Git folders resolvem o versionamento no dia 1**; a automação de deploy via
+> Asset Bundle (`bundle deploy` dev→prd) é que fica pra Fase 10 — são coisas diferentes.
 
 ---
 
@@ -305,7 +311,12 @@ Metric Views são o padrão moderno de camada semântica no Unity Catalog: defin
 
 **Meta:** promover dev → prd de forma reprodutível.
 
-- [ ] Versionar tudo em **Databricks Asset Bundles (DAB)**: jobs, o App, serving endpoints, e (quando quiser) pipelines/metric views.
+> **Nota:** o *versionamento do código* já acontece desde a **Fase 0** (Git folders +
+> GitHub). Esta fase trata da *automação de deploy/promoção* via Asset Bundle — declarar
+> os recursos (jobs, app, pipelines) como código e implantá-los entre ambientes. Não
+> confundir "commitar código" (dia 1) com "bundle deploy" (aqui).
+
+- [ ] Declarar os recursos em **Databricks Asset Bundles (DAB)**: jobs, o App, serving endpoints, e (quando quiser) pipelines/metric views. Reconciliar o catálogo do bundle (`hpn_dev`/`hpn_prd`) com o catálogo usado no build interativo (`hpn`).
 - [ ] Deploy **manual** via bundle (`databricks bundle deploy -t dev` / `-t prd`) — baseline suficiente para o MVP.
 - [ ] Separar ambientes `dev`/`prd` por catálogo UC e por target do bundle.
 - [ ] Checklist de go-live: RLS validada, budgets ativos, monitoramento ligado, benchmark de perguntas ≥ meta de acerto.
