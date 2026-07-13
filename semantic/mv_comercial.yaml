@@ -1,130 +1,93 @@
 # =============================================================================
 # METRIC VIEW — COMERCIAL
 # Tradução das medidas DAX de vendas (_Key Measures) para Unity Catalog.
-# Criação:
-#   CREATE VIEW hpn_prd.semantic.mv_comercial
-#   (usar a UI do Catalog Explorer > Create > Metric View, colando este YAML,
-#    ou via Databricks Asset Bundle / API).
-# Fonte: gold.v_sales_txn (transações unificadas venda/devolução).
+# Criação (UI mais garantida):
+#   Catalog Explorer > 4_semantic > Create > Metric View > cola este YAML > nome mv_comercial.
+#   (ou via DDL CREATE VIEW ... WITH METRICS, se a versão suportar / Asset Bundle na Fase 10.)
+# Fonte: 4_semantic.v_sales_transactions (transações unificadas venda/devolução, já
+#        denormalizadas + custo via lookup). Por isso NÃO há joins aqui.
 # =============================================================================
-version: "0.1"
+version: 0.1
 
-source: hpn_prd.gold.v_sales_txn
-
-joins:
-  - name: customer
-    source: hpn_prd.gold.dim_customer
-    "on": source.customer_key = customer.customer_key
-  - name: product
-    source: hpn_prd.gold.dim_product
-    "on": source.product_key = product.product_key
-  - name: calendar
-    source: hpn_prd.gold.dim_calendar
-    "on": source.date_id = calendar.date_id
+source: hpn.`4_semantic`.v_sales_transactions
 
 dimensions:
   # ---- Tempo ----
   - name: Data
-    expr: calendar.date_id
+    expr: order_date
   - name: Ano
-    expr: calendar.year
+    expr: order_year
   - name: Mes
-    expr: calendar.month_name
-  - name: AnoMes
-    expr: calendar.year_month_number
+    expr: order_month
   # ---- Cliente ----
   - name: Cliente
-    expr: customer.customer
-  - name: Regiao
-    expr: customer.region
-  - name: Pais
-    expr: customer.country_name
-  - name: Cidade
-    expr: customer.city_name
+    expr: customer_name
   - name: TipoNegocio
-    expr: customer.business_type
+    expr: business_type
+  # ---- Geografia ----
+  - name: Regiao
+    expr: region_name
+  - name: Pais
+    expr: country_name
+  - name: Cidade
+    expr: city_name
   # ---- Produto ----
   - name: Categoria
-    expr: product.category_name
+    expr: category_name
   - name: Subcategoria
-    expr: product.subcategory_name
+    expr: subcategory_name
   - name: Produto
-    expr: product.product_name
+    expr: product_name
 
 measures:
-  # ---- Base (aditivas) ----
-  - name: Gross Sales
-    expr: SUM(CASE WHEN txn_type = 'sale' THEN amount ELSE 0 END)
-    # DAX: SUMX(fSalesDetails, OrderQuantity * UnitPrice)
-
-  - name: Returns
-    expr: SUM(CASE WHEN txn_type = 'return' THEN amount ELSE 0 END)
-    # DAX: SUMX(fSalesReturns, ReturnQuantity * UnitPrice)
-
-  - name: Discounts
+  # ---- Base ----
+  - name: Gross Sales           # DAX: SUMX(fSalesDetails, OrderQuantity*UnitPrice)
+    expr: SUM(CASE WHEN transaction_type = 'sale' THEN gross_amount END)
+  - name: Returns               # DAX: SUMX(fSalesReturns, ReturnQuantity*UnitPrice)
+    expr: SUM(CASE WHEN transaction_type = 'return' THEN gross_amount END)
+  - name: Discounts             # DAX: SUM(fSalesDetails[Discount Amount])
     expr: SUM(discount_amount)
-    # DAX: SUM(fSalesDetails[Discount Amount])
+  - name: Cost of Sales         # DAX: SUMX(fSalesDetails, OrderQuantity*[Unit Cost])
+    expr: SUM(CASE WHEN transaction_type = 'sale' THEN quantity * unit_cost END)
+  - name: Quantity              # DAX: SUM(fSalesDetails[OrderQuantity])
+    expr: SUM(CASE WHEN transaction_type = 'sale' THEN quantity END)
+  - name: Customers Current     # DAX: DISTINCTCOUNT(fSalesDetails[CustomerKey])
+    expr: COUNT(DISTINCT CASE WHEN transaction_type = 'sale' THEN customer_key END)
 
-  - name: Cost of Sales
-    expr: SUM(CASE WHEN txn_type = 'sale' THEN quantity * unit_cost ELSE 0 END)
-    # DAX: SUMX(fSalesDetails, OrderQuantity * Unit Cost)
-
-  - name: Quantity
-    expr: SUM(CASE WHEN txn_type = 'sale' THEN quantity ELSE 0 END)
-    # DAX: SUM(fSalesDetails[OrderQuantity])
-
-  - name: Customers Current
-    expr: COUNT(DISTINCT CASE WHEN txn_type = 'sale' THEN customer_key END)
-    # DAX: DISTINCTCOUNT(fSalesDetails[CustomerKey])
-
-  # ---- Compostas ----
-  - name: Net Sales
+  # ---- Compostas (reescritas inline: metric view não referencia outra measure) ----
+  - name: Net Sales             # DAX: [Gross Sales]-[Discounts]-[Returns]
     expr: >
-      SUM(CASE WHEN txn_type = 'sale' THEN amount ELSE 0 END)
+      SUM(CASE WHEN transaction_type = 'sale' THEN gross_amount END)
       - SUM(discount_amount)
-      - SUM(CASE WHEN txn_type = 'return' THEN amount ELSE 0 END)
-    # DAX: [Gross Sales] - [Discounts] - [Returns]
-
-  - name: Gross Margin
+      - SUM(CASE WHEN transaction_type = 'return' THEN gross_amount END)
+  - name: Gross Margin          # DAX: [Net Sales]-[Cost of Sales]
     expr: >
-      SUM(CASE WHEN txn_type = 'sale' THEN amount ELSE 0 END)
+      SUM(CASE WHEN transaction_type = 'sale' THEN gross_amount END)
       - SUM(discount_amount)
-      - SUM(CASE WHEN txn_type = 'return' THEN amount ELSE 0 END)
-      - SUM(CASE WHEN txn_type = 'sale' THEN quantity * unit_cost ELSE 0 END)
-    # DAX: [Net Sales] - [Cost of Sales]
+      - SUM(CASE WHEN transaction_type = 'return' THEN gross_amount END)
+      - SUM(CASE WHEN transaction_type = 'sale' THEN quantity * unit_cost END)
 
-  # ---- Percentuais / ratios ----
-  - name: Gross Margin %
+  # ---- Percentuais (NULLIF protege /0) ----
+  - name: Gross Margin %        # DAX: DIVIDE([Gross Sales]-[Cost of Sales],[Gross Sales])
     expr: >
-      (SUM(CASE WHEN txn_type = 'sale' THEN amount ELSE 0 END)
-       - SUM(CASE WHEN txn_type = 'sale' THEN quantity * unit_cost ELSE 0 END))
-      / NULLIF(SUM(CASE WHEN txn_type = 'sale' THEN amount ELSE 0 END), 0)
-    # DAX: DIVIDE([Gross Sales]-[Cost of Sales], [Gross Sales])
-
-  - name: Net Margin %
+      (SUM(CASE WHEN transaction_type = 'sale' THEN gross_amount END)
+       - SUM(CASE WHEN transaction_type = 'sale' THEN quantity * unit_cost END))
+      / NULLIF(SUM(CASE WHEN transaction_type = 'sale' THEN gross_amount END), 0)
+  - name: Net Margin %          # DAX: DIVIDE([Net Sales]-[Cost of Sales],[Net Sales])
     expr: >
-      (SUM(CASE WHEN txn_type = 'sale' THEN amount ELSE 0 END)
-       - SUM(discount_amount)
-       - SUM(CASE WHEN txn_type = 'return' THEN amount ELSE 0 END)
-       - SUM(CASE WHEN txn_type = 'sale' THEN quantity * unit_cost ELSE 0 END))
-      / NULLIF(SUM(CASE WHEN txn_type = 'sale' THEN amount ELSE 0 END)
-       - SUM(discount_amount)
-       - SUM(CASE WHEN txn_type = 'return' THEN amount ELSE 0 END), 0)
-    # DAX: DIVIDE([Net Sales]-[Cost of Sales], [Net Sales])
-
-  - name: "% Returns"
+      (SUM(CASE WHEN transaction_type = 'sale' THEN gross_amount END) - SUM(discount_amount)
+       - SUM(CASE WHEN transaction_type = 'return' THEN gross_amount END)
+       - SUM(CASE WHEN transaction_type = 'sale' THEN quantity * unit_cost END))
+      / NULLIF(SUM(CASE WHEN transaction_type = 'sale' THEN gross_amount END) - SUM(discount_amount)
+       - SUM(CASE WHEN transaction_type = 'return' THEN gross_amount END), 0)
+  - name: "% Returns"           # DAX: DIVIDE([Returns],[Gross Sales])
     expr: >
-      SUM(CASE WHEN txn_type = 'return' THEN amount ELSE 0 END)
-      / NULLIF(SUM(CASE WHEN txn_type = 'sale' THEN amount ELSE 0 END), 0)
-    # DAX: DIVIDE([Returns], [Gross Sales])
-
-  - name: Avg Unit Price
-    expr: AVG(CASE WHEN txn_type = 'sale' THEN unit_price END)
-    # DAX: AVERAGE(fSalesDetails[UnitPrice])
-
-  - name: Avg Unit Cost
-    expr: AVG(CASE WHEN txn_type = 'sale' THEN unit_cost END)
-    # DAX: AVERAGE(fSalesDetails[Unit Cost])
+      SUM(CASE WHEN transaction_type = 'return' THEN gross_amount END)
+      / NULLIF(SUM(CASE WHEN transaction_type = 'sale' THEN gross_amount END), 0)
+  - name: Avg Unit Price        # DAX: AVERAGE(fSalesDetails[UnitPrice])
+    expr: AVG(CASE WHEN transaction_type = 'sale' THEN unit_price END)
+  - name: Avg Unit Cost         # DAX: AVERAGE(fSalesDetails[Unit Cost])
+    expr: AVG(CASE WHEN transaction_type = 'sale' THEN unit_cost END)
 
 # -----------------------------------------------------------------------------
 # NOTAS DE TRADUÇÃO
@@ -132,6 +95,8 @@ measures:
 #   Faça via consulta com window functions ou funções SQL (ver 02_functions.sql)
 #   e cadastre como "example SQL" / trusted asset no Genie.
 # - Classificação de clientes (RFM / Champions / At Risk / Lost): materializada
-#   em gold.dim_customer_rfm + funções (ver 02_functions.sql), não como measure.
-# - Formatação (USD vs quantidade) é responsabilidade do app/Genie instructions.
+#   em gold + funções (ver 02_functions.sql), não como measure.
+# - Formatação (USD vs quantidade) é responsabilidade do app / Genie instructions.
+# - unit_cost NULL (venda sem custo casado) subestima Cost of Sales e infla margem:
+#   validar na paridade vs Power BI antes de liberar.
 # =============================================================================
