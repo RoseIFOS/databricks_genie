@@ -1,0 +1,80 @@
+table fProductCostHistory
+	lineageTag: 7163eabe-90d9-4604-a69b-e667b983b0be
+
+	column Year
+		dataType: int64
+		formatString: 0
+		lineageTag: b9985c05-462f-4ad2-9e96-8f96aa0161ff
+		summarizeBy: sum
+		sourceColumn: Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthNo
+		dataType: int64
+		formatString: 0
+		lineageTag: d546cd51-fca3-47a6-befc-2a8990463fe1
+		summarizeBy: sum
+		sourceColumn: MonthNo
+
+		annotation SummarizationSetBy = Automatic
+
+	column CountryCode
+		dataType: string
+		lineageTag: 4815a98b-a395-4e4d-803e-6dc3e6af6e23
+		summarizeBy: none
+		sourceColumn: CountryCode
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column ProductKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 6c94e350-baba-4047-a244-33e9edc86ff0
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column UnitCost
+		dataType: double
+		lineageTag: 7d611181-0c68-4888-9790-e01e90aeff7a
+		summarizeBy: sum
+		sourceColumn: UnitCost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 3c145be6-05f3-4ea7-b989-5bf7c99917f1
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition fProductCostHistory-fd41a297-cf11-46ce-a354-935d6d426e12 = m
+		mode: import
+		queryGroup: Facts
+		source =
+				let
+				    Fonte = Excel.Workbook(File.Contents("C:\Users\phg\Desktop\BootCamp\Squad\DataBase.xlsx"), null, true),
+				    ProductCostHistory_Sheet = Fonte{[Item="ProductCostHistory",Kind="Sheet"]}[Data],
+				    #"Cabeçalhos Promovidos" = Table.PromoteHeaders(ProductCostHistory_Sheet, [PromoteAllScalars=true]),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(#"Cabeçalhos Promovidos",{{"Year", Int64.Type}, {"MonthNo", Int64.Type}, {"CountryCode", type text}, {"ProductKey", Int64.Type}, {"UnitCost", type number}}),
+				    #"Coluna Personalizada Adicionada" = Table.AddColumn(#"Tipo Alterado", "Personalizar", each Text.Combine({Text.Middle(Text.From([Year], "pt-BR"), 1, 2), "/", Text.PadStart(Text.From([MonthNo], "pt-BR"), 2, "0"), Text.PadStart(Text.From([Year], "pt-BR"), 5, "/")}), type text),
+				    #"Tipo Alterado1" = Table.TransformColumnTypes(#"Coluna Personalizada Adicionada",{{"Personalizar", type date}}),
+				    #"Colunas Renomeadas" = Table.RenameColumns(#"Tipo Alterado1",{{"Personalizar", "Date"}})
+				in
+				    #"Colunas Renomeadas"
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

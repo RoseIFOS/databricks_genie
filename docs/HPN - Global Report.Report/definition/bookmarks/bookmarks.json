@@ -1,0 +1,109 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmarksMetadata/1.0.0/schema.json",
+  "items": [
+    {
+      "name": "Bookmark6dfcc8f37aebc5460937"
+    },
+    {
+      "name": "Bookmark698a21012d076337e0a5"
+    },
+    {
+      "name": "Bookmarka8a35dc3c6ada2cb189d",
+      "displayName": "Overview",
+      "children": [
+        "Bookmark5d056e031c42ce22b409",
+        "Bookmark6827dfb41568bc3b81dc",
+        "Bookmarkb5933e445ab5d4764404",
+        "Bookmark68df39ceb082b1cb4220"
+      ]
+    },
+    {
+      "name": "Bookmark216fd59077851d20796c",
+      "displayName": "Net Margin",
+      "children": [
+        "Bookmark2182eb7e132c7a1dc1d3",
+        "Bookmark3e8bbf46269461c777d3",
+        "Bookmarkb0355dc2d52423667572",
+        "Bookmark4335e89591a074e35585",
+        "Bookmark6ec09e485378935e5472"
+      ]
+    },
+    {
+      "name": "Bookmark1c7bc572700b3203d0eb"
+    },
+    {
+      "name": "Bookmarkb03ee710cedce80e511e"
+    },
+    {
+      "name": "Bookmark9116d707d5c96e9ca7ab"
+    },
+    {
+      "name": "Bookmark4732c12406c07a0c2920"
+    },
+    {
+      "name": "Bookmark2c75cd35894b5a0064ce"
+    },
+    {
+      "name": "Bookmark6cad2758940900999bbc"
+    },
+    {
+      "name": "Bookmark4ba2f70481db10b3e83c"
+    },
+    {
+      "name": "Bookmarkd6f6720774bb9c404736"
+    },
+    {
+      "name": "Bookmark80bf713680bbbb7c1652"
+    },
+    {
+      "name": "Bookmarka72b90a6ae017b020b1e"
+    },
+    {
+      "name": "Bookmarkffa1016e174ec2a1105e"
+    },
+    {
+      "name": "Bookmark5de8bb54a0b075acd784"
+    },
+    {
+      "name": "Bookmarkd4477fa350190d2894d7"
+    },
+    {
+      "name": "Bookmark305c23310ac871004373",
+      "displayName": "RFM",
+      "children": [
+        "Bookmarka9540a7629737cda7076",
+        "Bookmark7dd5c4f5ff1d5955e0a2",
+        "Bookmark389ec9ae4bce37e34254",
+        "Bookmarkd18cf13dae2a4badc0e7",
+        "Bookmark119837db636740a2b503"
+      ]
+    },
+    {
+      "name": "Bookmark917d224e78402879ca32"
+    },
+    {
+      "name": "Bookmark5fa36fde98c401051280"
+    },
+    {
+      "name": "Bookmarkfb17bc1806c9aa1a27a4"
+    },
+    {
+      "name": "Bookmarkceec2dcb8004a43e2a06"
+    },
+    {
+      "name": "Bookmark356b9353c27b75b0c176",
+      "displayName": "DRE",
+      "children": [
+        "Bookmark239ac08c280e291e84da",
+        "Bookmark5c26ec34a5ac57d2b890",
+        "Bookmark13d15849094736254666"
+      ]
+    },
+    {
+      "name": "Bookmark78a20f9be7796ed51015"
+    },
+    {
+      "name": "Bookmarkfa6f8059a01205799883"
+    }
+  ]
+}

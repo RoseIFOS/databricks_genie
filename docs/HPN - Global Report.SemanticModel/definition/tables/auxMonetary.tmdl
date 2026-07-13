@@ -1,0 +1,77 @@
+table auxMonetary
+	isHidden
+	lineageTag: 53230410-74b0-4db2-bb15-3f9c134e6f10
+
+	column MonetaryID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 9582cf17-124a-4aea-9e9c-473d4639ae8c
+		summarizeBy: count
+		sourceColumn: MonetaryID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Monetary
+		dataType: string
+		isHidden
+		lineageTag: 9de9b5b1-8e61-4c6c-8e60-42e690386455
+		summarizeBy: none
+		sourceColumn: Monetary
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column LowerT
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: ab5cfecb-cace-4ccf-bd5b-7b1e9721e853
+		summarizeBy: sum
+		sourceColumn: LowerT
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column UpperT
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: db1990c9-b82a-4615-84bb-a1f1543cf26e
+		summarizeBy: sum
+		sourceColumn: UpperT
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition auxMonetary-088f3c3d-79fb-4bf9-bc63-10e68d6307e0 = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromList(
+				    {
+				        [ID = 1, Monetary = "M1", LowerT = 0, UpperT=5000], // bad customer
+				        [ID = 2, Monetary = "M2", LowerT = 5000, UpperT=50000],
+				        [ID = 3, Monetary = "M3", LowerT = 50000, UpperT=150000],
+				        [ID = 4, Monetary = "M4", LowerT = 150000, UpperT=200000],
+				        [ID = 5, Monetary = "M5", LowerT = 200000, UpperT=99999999] // good customer
+				
+				    },
+				    Record.FieldValues,
+				    {"MonetaryID", "Monetary", "LowerT", "UpperT"}
+				),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"MonetaryID", Int64.Type}, {"Monetary", type text}, {"LowerT", Int64.Type}, {"UpperT", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

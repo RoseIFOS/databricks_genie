@@ -1,0 +1,394 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/2.1.0/schema.json",
+  "displayName": "Customer Share - Menu",
+  "name": "Bookmark5fa36fde98c401051280",
+  "options": {
+    "targetVisualNames": [],
+    "suppressData": true
+  },
+  "explorationState": {
+    "version": "1.3",
+    "activeSection": "ReportSection3cf14a86d701727d0e8c",
+    "sections": {
+      "ReportSection3cf14a86d701727d0e8c": {
+        "visualContainers": {
+          "f349876dc2eeb128700d": {
+            "singleVisual": {
+              "visualType": "textbox",
+              "objects": {}
+            }
+          },
+          "b4546a2d82a492d071e2": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "e4efa4240806c1f61539",
+                  "type": "Categorical",
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "dCustomer"
+                        }
+                      },
+                      "Property": "CountryName"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "36021f9d61630b4c6d1d",
+                  "type": "Advanced",
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "dCustomer"
+                        }
+                      },
+                      "Property": "CustomerKey"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "d78a7a25104a05fe3311",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Key Measures"
+                        }
+                      },
+                      "Property": "Customers Average Sales on Country"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "70ea574ad60f336b22c8",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Key Measures"
+                        }
+                      },
+                      "Property": "Gross Sales"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "f77ce24fb1e3cb280c13",
+                  "type": "Categorical",
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "dCustomer"
+                        }
+                      },
+                      "Property": "CityName"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "1b76b9db5b01c527bfcd",
+                  "type": "Categorical",
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "dCustomer"
+                        }
+                      },
+                      "Property": "Customer"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "f589b191072eaa389b8b",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Key Measures"
+                        }
+                      },
+                      "Property": "% Customers Share on Country"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "f61ba4896734abebd291",
+                  "type": "Categorical",
+                  "expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "dCustomer"
+                        }
+                      },
+                      "Property": "Region.1"
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "pivotTable",
+              "objects": {},
+              "orderBy": [
+                {
+                  "Direction": 2,
+                  "Expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Key Measures"
+                        }
+                      },
+                      "Property": "Gross Sales*"
+                    }
+                  }
+                }
+              ],
+              "activeProjections": {
+                "Rows": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "dCustomer"
+                        }
+                      },
+                      "Property": "CountryName"
+                    }
+                  }
+                ]
+              },
+              "expansionStates": [
+                {
+                  "roles": [
+                    "Rows"
+                  ],
+                  "levels": [
+                    {
+                      "queryRefs": [
+                        "dCustomer.CountryName"
+                      ],
+                      "isCollapsed": true,
+                      "isPinned": true
+                    },
+                    {
+                      "queryRefs": [
+                        "dCustomer.CustomerKey"
+                      ],
+                      "isCollapsed": true,
+                      "isPinned": true
+                    }
+                  ],
+                  "root": {
+                    "identityValues": null
+                  }
+                }
+              ]
+            }
+          },
+          "450825c2bd18547f0bd3": {
+            "singleVisual": {
+              "visualType": "actionButton",
+              "objects": {}
+            }
+          },
+          "b0fa3ee7a802d142f5ee": {
+            "singleVisual": {
+              "visualType": "actionButton",
+              "objects": {}
+            }
+          },
+          "7c880dca00905a49c84d": {
+            "singleVisual": {
+              "visualType": "basicShape",
+              "objects": {}
+            }
+          },
+          "0eaa2076ad12f2ac254d": {
+            "singleVisual": {
+              "visualType": "basicShape",
+              "objects": {}
+            }
+          },
+          "3677c3e270bca00287d5": {
+            "singleVisual": {
+              "visualType": "actionButton",
+              "objects": {}
+            }
+          },
+          "cb005eddead604c29aed": {
+            "singleVisual": {
+              "visualType": "textbox",
+              "objects": {}
+            }
+          },
+          "5901b81fdd7b8bb42d53": {
+            "singleVisual": {
+              "visualType": "basicShape",
+              "objects": {}
+            }
+          },
+          "1ecf4cb0b34fdf95336c": {
+            "singleVisual": {
+              "visualType": "basicShape",
+              "objects": {}
+            }
+          },
+          "4f1af665dc11f30e1a7e": {
+            "singleVisual": {
+              "visualType": "actionButton",
+              "objects": {}
+            }
+          },
+          "c77617e999178b4870c6": {
+            "singleVisual": {
+              "visualType": "actionButton",
+              "objects": {}
+            }
+          },
+          "c8c9f00352e9d6d202f7": {
+            "singleVisual": {
+              "visualType": "actionButton",
+              "objects": {}
+            }
+          },
+          "08560e5365f8aa9839ce": {
+            "singleVisual": {
+              "visualType": "basicShape",
+              "objects": {}
+            }
+          },
+          "5c3b92443ca52ff1f222": {
+            "singleVisual": {
+              "visualType": "actionButton",
+              "objects": {}
+            }
+          },
+          "e365bfa0d3ebddc7e408": {
+            "singleVisual": {
+              "visualType": "textbox",
+              "objects": {}
+            }
+          },
+          "932c91ba14a5bbdf3058": {
+            "singleVisual": {
+              "visualType": "actionButton",
+              "objects": {}
+            }
+          },
+          "40054461c36bd7ef490d": {
+            "singleVisual": {
+              "visualType": "actionButton",
+              "objects": {}
+            }
+          },
+          "37883bda86f7df8e6f70": {
+            "singleVisual": {
+              "visualType": "actionButton",
+              "objects": {}
+            }
+          },
+          "ffd619d0ba2c9e76a04a": {
+            "singleVisual": {
+              "visualType": "textbox",
+              "objects": {}
+            }
+          },
+          "ffedda4490993d213c4d": {
+            "singleVisual": {
+              "visualType": "actionButton",
+              "objects": {}
+            }
+          },
+          "a74b882231ed4c2fd3f0": {
+            "singleVisual": {
+              "visualType": "actionButton",
+              "objects": {}
+            }
+          },
+          "9085a55700e05d11f41a": {
+            "singleVisual": {
+              "visualType": "actionButton",
+              "objects": {}
+            }
+          },
+          "01714c6fd5f8005f4e37": {
+            "singleVisual": {
+              "visualType": "actionButton",
+              "objects": {}
+            }
+          },
+          "d67f02a8076c905dfb94": {
+            "singleVisual": {
+              "visualType": "textbox",
+              "objects": {}
+            }
+          },
+          "7edf18be59971ed985d8": {
+            "singleVisual": {
+              "visualType": "actionButton",
+              "objects": {}
+            }
+          },
+          "4395fc6ce806e2da0474": {
+            "singleVisual": {
+              "visualType": "actionButton",
+              "objects": {}
+            }
+          },
+          "bef8b0bdeaa8494e6619": {
+            "singleVisual": {
+              "visualType": "actionButton",
+              "objects": {}
+            }
+          },
+          "3418a0f5acfda9f5d02b": {
+            "singleVisual": {
+              "visualType": "basicShape",
+              "objects": {}
+            }
+          }
+        },
+        "visualContainerGroups": {
+          "d1e744c2b4b378106efd": {
+            "isHidden": false
+          }
+        }
+      }
+    },
+    "objects": {
+      "merge": {
+        "outspacePane": [
+          {
+            "properties": {
+              "expanded": {
+                "expr": {
+                  "Literal": {
+                    "Value": "false"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

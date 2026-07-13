@@ -1,0 +1,45 @@
+table auxRLS
+	isHidden
+	lineageTag: 73d732de-a799-4482-a9dc-d6c932c3fd8b
+
+	column Region
+		dataType: string
+		isHidden
+		lineageTag: 91675c2c-e1b6-4c72-ae02-b4e0394af407
+		summarizeBy: none
+		sourceColumn: Region
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column Email
+		dataType: string
+		isHidden
+		lineageTag: 841388d7-e251-4d02-a1b1-0b87939a46b4
+		summarizeBy: none
+		sourceColumn: Email
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	partition auxRLS-5e8e8f05-9c79-46a1-8b7f-c201ff8da3d6 = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents("C:\Users\arthur.ribeiro\Desktop\Bootcamp\Bootcamp2Fase\RLSAux.csv"),[Delimiter=";", Columns=2, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}, {"Column2", type text}}),
+				    #"Promoted Headers" = Table.PromoteHeaders(#"Changed Type", [PromoteAllScalars=true]),
+				    #"Changed Type1" = Table.TransformColumnTypes(#"Promoted Headers",{{"Region", type text}, {"Email", type text}})
+				in
+				    #"Changed Type1"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,29 @@
+table 'auxMore than'
+	isHidden
+	lineageTag: d4fb5e57-d4a0-4cde-9bbc-b9da4d0c07bf
+
+	measure 'More than Valor' = SELECTEDVALUE('auxMore than'[More than])
+		formatString: #,0.00%;-#,0.00%;#,0.00%
+		isHidden
+		lineageTag: bceb68cd-0d76-4619-be92-ed21ff7a7175
+
+	column 'More than'
+		isHidden
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: b2d58798-63ab-4ed4-a3b6-43a121146eb3
+		summarizeBy: none
+		sourceColumn: [Value]
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 0
+				}
+
+		annotation SummarizationSetBy = User
+
+	partition 'auxMore than-57e08a4d-fd2a-419f-a84c-3ff143151ba2' = calculated
+		mode: import
+		source = GENERATESERIES(0, 10, 0.25)
+
+	annotation PBI_Id = a6f5fd977d184953b310241bd523cbd6
+

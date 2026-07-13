@@ -1,0 +1,44 @@
+table 'Customer Classification Info'
+	lineageTag: 03dcb057-78b4-4029-bbef-d25cb7e972b1
+
+	column 'Customer Class'
+		dataType: string
+		lineageTag: 450ab1ec-a857-450d-85cb-80fcc78e1967
+		summarizeBy: none
+		sourceColumn: Customer Class
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column Activity
+		dataType: string
+		lineageTag: 4cfbe805-327a-40ae-9a7f-4de2fbcbb2b7
+		summarizeBy: none
+		sourceColumn: Activity
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column 'Actionable Tip'
+		dataType: string
+		lineageTag: de5545a1-1f71-4015-9f0e-94562fe2dead
+		summarizeBy: none
+		sourceColumn: Actionable Tip
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	partition 'Customer Classification Info-20191b8d-01f7-4c80-922a-5ad7c2571f90' = m
+		mode: import
+		source =
+				let
+				    Fonte = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("lVXNjqQ2EH6VSp9J5xlmRpFymE1WMxvtYbQHA9VgtbG9tgGRU14jr5cnyVcFNOQSKZdWtxtXfX9VfHxcXnozRBt8vlSX5zB2faHEDfvilorqcaFwK+zJ+JZyZHyWnmkIuVxx4Y1nk/RouNKL8VQzsUluIdOGWDhluoVEnmeKKbRjU/KVvlrn5OcQCtMSxkR1Qvnr5Vv1cXkNi3H0MuYSBlxHj3ft2oXQoq3nhWZbehrzCuxKb5wj4NuJqYStrvARfL/HzGjW267nRJNxI5+APOW7wks8WZ5x8LPvTMcrHUXzGRB9sUCkuGwuSlrkoWbHKDIVFaeQWYGaIYzyC8DrVdMhJCkMiYJvWLD9drsB08BDjRq9jfQTOWlSFoHYJTNU4kQYBuEfijB4YFd0G5CzWM97t/xvGwv5UDbF8NjnFCbbMrD8WAc4aH1HeYwxpFJRp1JCg83KPDYNZ9DMxaSCYtbphcTOqNIAv8kF8W3Gf4dKuQ8xPkTqzcT+7z//2uUaxqYXPC+JDcKgOSCDTLHXjkE1uiUGoAQbsrb5lVkBPBV1J3hUeKoDUKN8EgeVegPmuPp9lK/qheQHHJY1CTD8k1lUGMG1O4USy0M76CCngvGTuTM5O9jCSLwdeEWXzy7VJuPP4CkaGBDH1PQ4yRJS0xQ7CckjXcAMTRDad8ccxT12Yf7fJHSeXMibafamlNKjYyvo33uIqldM7aR2xuDB1jP6GOLozJEyJFKMmKE7mUKtzY3Eer3iPTdlncUTo0JvNt+3qUVWbLcNrSDf9Wj30X0GfRfgpMppunAl8VYkqZM4rIRq09x/kJKKEYoHj1H8A8/xYCyw4fEHoj0zO/BK2GjWe3bxNrqD+goZW0sD+SoCfkE/tRrPA3vHZxcrJXGCfqQ5cRmTByJZJ+bgJMp/tf7gQZM1h6jrajzNdUVtWCsefoIdDIpcrES9omLcXQ4P1X+xWCEes6iD93qOHs0mr3Cke0WSL13jspqFjhz4UXYQmAGQ/HFsp3XrYNB5MrDzEYztbdDIZtxjoSlvzoOsAd3Xuq7O1zDzvpn+I9komDivL5hJtpH1eJfITc2bRLsnmZ0G7y5jO6iCD9mwCni2Wdp++wc=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"Customer Class" = _t, Activity = _t, #"Actionable Tip" = _t]),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(Fonte,{{"Customer Class", type text}, {"Activity", type text}, {"Actionable Tip", type text}})
+				in
+				    #"Tipo Alterado"
+
+	annotation PBI_ResultType = Table
+

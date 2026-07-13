@@ -1,0 +1,369 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/2.1.0/schema.json",
+  "displayName": "Home - Main",
+  "name": "Bookmark698a21012d076337e0a5",
+  "options": {
+    "targetVisualNames": []
+  },
+  "explorationState": {
+    "version": "1.3",
+    "activeSection": "ReportSection7f464c4c5820d5a89a5a",
+    "sections": {
+      "ReportSection7f464c4c5820d5a89a5a": {
+        "visualContainers": {
+          "dac502682374c1808ddc": {
+            "singleVisual": {
+              "visualType": "textbox",
+              "objects": {}
+            }
+          },
+          "3d77801403a6a1c875d2": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "6283c8f6fed2ed06aed3",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Key Measures"
+                        }
+                      },
+                      "Property": "Gross Sales"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "2ec56880ee389fa2fa08",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Key Measures"
+                        }
+                      },
+                      "Property": "Net Sales"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "7a20e5a3add2fad3b680",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Key Measures"
+                        }
+                      },
+                      "Property": "Gross Margin"
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "multiRowCard",
+              "objects": {},
+              "orderBy": [
+                {
+                  "Direction": 2,
+                  "Expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Key Measures"
+                        }
+                      },
+                      "Property": "Gross Sales"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "34ec38e757c4105a3208": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "e8724ee6b7b102f0161f",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Key Measures"
+                        }
+                      },
+                      "Property": "Discounts"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "a69611772a1eb7b5abf7",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Key Measures"
+                        }
+                      },
+                      "Property": "Returns"
+                    }
+                  },
+                  "howCreated": 0
+                },
+                {
+                  "name": "1c7afc3d4810a2e3cff3",
+                  "type": "Advanced",
+                  "expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Key Measures"
+                        }
+                      },
+                      "Property": "Cost of Sales"
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "multiRowCard",
+              "objects": {},
+              "orderBy": [
+                {
+                  "Direction": 2,
+                  "Expression": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Key Measures"
+                        }
+                      },
+                      "Property": "Discounts"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "de784f35bda79c2820dd": {
+            "singleVisual": {
+              "visualType": "actionButton",
+              "objects": {}
+            }
+          },
+          "032b18640dcc7bbaec03": {
+            "filters": {
+              "byExpr": [
+                {
+                  "name": "d0dce24388a3d70b802e",
+                  "type": "Advanced",
+                  "expression": {
+                    "HierarchyLevel": {
+                      "Expression": {
+                        "Hierarchy": {
+                          "Expression": {
+                            "PropertyVariationSource": {
+                              "Expression": {
+                                "SourceRef": {
+                                  "Entity": "dCalendar"
+                                }
+                              },
+                              "Name": "Variation",
+                              "Property": "DateId"
+                            }
+                          },
+                          "Hierarchy": "Hierarquia de datas"
+                        }
+                      },
+                      "Level": "Ano"
+                    }
+                  },
+                  "howCreated": 0
+                }
+              ]
+            },
+            "singleVisual": {
+              "visualType": "slicer",
+              "objects": {
+                "merge": {
+                  "general": [
+                    {
+                      "properties": {
+                        "filter": {
+                          "filter": {
+                            "Version": 2,
+                            "From": [
+                              {
+                                "Name": "l",
+                                "Entity": "LocalDateTable_c56ebbb1-2271-4ee4-a8c8-03e03ee13936",
+                                "Type": 0
+                              }
+                            ],
+                            "Where": [
+                              {
+                                "Condition": {
+                                  "In": {
+                                    "Expressions": [
+                                      {
+                                        "Column": {
+                                          "Expression": {
+                                            "SourceRef": {
+                                              "Source": "l"
+                                            }
+                                          },
+                                          "Property": "Ano"
+                                        }
+                                      }
+                                    ],
+                                    "Values": [
+                                      [
+                                        {
+                                          "Literal": {
+                                            "Value": "2013L"
+                                          }
+                                        }
+                                      ]
+                                    ]
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "data": [
+                    {
+                      "properties": {
+                        "mode": {
+                          "expr": {
+                            "Literal": {
+                              "Value": "'Basic'"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "orderBy": [
+                {
+                  "Direction": 1,
+                  "Expression": {
+                    "HierarchyLevel": {
+                      "Expression": {
+                        "Hierarchy": {
+                          "Expression": {
+                            "PropertyVariationSource": {
+                              "Expression": {
+                                "SourceRef": {
+                                  "Entity": "dCalendar"
+                                }
+                              },
+                              "Name": "Variation",
+                              "Property": "DateId"
+                            }
+                          },
+                          "Hierarchy": "Hierarquia de datas"
+                        }
+                      },
+                      "Level": "Ano"
+                    }
+                  }
+                }
+              ],
+              "activeProjections": {
+                "Values": [
+                  {
+                    "HierarchyLevel": {
+                      "Expression": {
+                        "Hierarchy": {
+                          "Expression": {
+                            "PropertyVariationSource": {
+                              "Expression": {
+                                "SourceRef": {
+                                  "Entity": "dCalendar"
+                                }
+                              },
+                              "Name": "Variation",
+                              "Property": "DateId"
+                            }
+                          },
+                          "Hierarchy": "Hierarquia de datas"
+                        }
+                      },
+                      "Level": "Ano"
+                    }
+                  }
+                ]
+              },
+              "cachedFilterDisplayItems": [
+                {
+                  "id": {
+                    "scopeId": {
+                      "Comparison": {
+                        "ComparisonKind": 0,
+                        "Left": {
+                          "Column": {
+                            "Expression": {
+                              "SourceRef": {
+                                "Entity": "LocalDateTable_c56ebbb1-2271-4ee4-a8c8-03e03ee13936"
+                              }
+                            },
+                            "Property": "Ano"
+                          }
+                        },
+                        "Right": {
+                          "Literal": {
+                            "Value": "2013L"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "displayName": "2013"
+                }
+              ]
+            }
+          }
+        },
+        "visualContainerGroups": {
+          "7105a28514a6302c5bec": {
+            "isHidden": false
+          }
+        }
+      }
+    },
+    "objects": {
+      "merge": {
+        "outspacePane": [
+          {
+            "properties": {
+              "expanded": {
+                "expr": {
+                  "Literal": {
+                    "Value": "false"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

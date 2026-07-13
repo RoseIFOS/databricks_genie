@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "HPN - Global Report"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "e81ef401-5c34-45ec-b79d-07ba331b69ed"
+  }
+}

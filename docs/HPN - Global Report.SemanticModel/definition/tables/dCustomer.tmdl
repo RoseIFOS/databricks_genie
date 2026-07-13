@@ -1,0 +1,182 @@
+table dCustomer
+	lineageTag: 880ec3ca-d79a-40a9-b964-49d8a5ec04c5
+
+	column CustomerKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 9c753bf3-6e2f-4320-a0a4-a6a41657b656
+		summarizeBy: none
+		sourceColumn: CustomerKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column GeographyKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 22b40487-fa30-4734-88cb-87f73ae52c71
+		summarizeBy: count
+		sourceColumn: GeographyKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column BusinessType
+		dataType: string
+		lineageTag: a6c686cd-95e0-4288-bc21-7c963a06e496
+		summarizeBy: none
+		sourceColumn: BusinessType
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column Customer
+		dataType: string
+		lineageTag: aa11ec11-bee5-4f03-8271-e77c3574dd13
+		summarizeBy: none
+		sourceColumn: Customer
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column NumberEmployees
+		dataType: int64
+		formatString: 0
+		lineageTag: ce1af5d8-bc1c-4f1b-a474-490c6e594231
+		summarizeBy: sum
+		sourceColumn: NumberEmployees
+
+		annotation SummarizationSetBy = Automatic
+
+	column AnnualRevenue
+		dataType: int64
+		formatString: 0
+		lineageTag: 416440eb-6063-4472-9880-ae65b8da039c
+		summarizeBy: sum
+		sourceColumn: AnnualRevenue
+
+		annotation SummarizationSetBy = Automatic
+
+	column YearOpened
+		dataType: int64
+		formatString: 0
+		lineageTag: f72e7475-9447-48cc-9783-1bd70e565215
+		summarizeBy: sum
+		sourceColumn: YearOpened
+
+		annotation SummarizationSetBy = Automatic
+
+	column CityName
+		dataType: string
+		lineageTag: b8d2ac4b-61f0-448c-871b-58a5ed55f27e
+		summarizeBy: none
+		sourceColumn: CityName
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column StateCode
+		dataType: string
+		lineageTag: db99b91e-00ce-4b46-b92a-5c3924e03ee1
+		summarizeBy: none
+		sourceColumn: StateCode
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column StateName
+		dataType: string
+		lineageTag: 78940811-c5aa-40a8-ab6f-2c0ec8b0b67c
+		summarizeBy: none
+		sourceColumn: StateName
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column CountryCode
+		dataType: string
+		lineageTag: d0245bf5-9af4-4887-acb4-06fa9711d7fd
+		summarizeBy: none
+		sourceColumn: CountryCode
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column CountryName
+		dataType: string
+		lineageTag: 661552a4-8ea3-462e-9ee6-87a93a510b37
+		summarizeBy: none
+		sourceColumn: CountryName
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column RegionKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 774c6542-55ba-4d86-aaea-599cd03167e7
+		summarizeBy: count
+		sourceColumn: RegionKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Region.1'
+		dataType: string
+		lineageTag: ea3d8104-e9a2-4ff4-8567-511d14d2d24c
+		summarizeBy: none
+		sourceColumn: Region.1
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column Continent
+		dataType: string
+		lineageTag: 83630a60-d617-41ec-ba99-9af5e437ee4c
+		summarizeBy: none
+		sourceColumn: Continent
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	hierarchy 'CountryName Hierarchy'
+		lineageTag: e3131d03-8b76-4dcf-8e87-88baff3cfc96
+
+		level CountryName
+			lineageTag: 5252b80d-b61a-4e7f-86f9-695ec9541c31
+			column: CountryName
+
+		level 'Region.1'
+			lineageTag: b2e90365-93eb-4278-8d33-94211f4aa8cb
+			column: 'Region.1'
+
+		level StateName
+			lineageTag: 9950d905-bc95-4a23-b39e-94d156a69d3f
+			column: StateName
+
+		level CityName
+			lineageTag: ab56a94e-9d12-467f-97dc-527bfe255889
+			column: CityName
+
+	partition dCustomer-b9052b70-8ee8-4714-86de-ab55d894bac8 = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    Fonte = Excel.Workbook(File.Contents("C:\Users\phg\Desktop\BootCamp\Squad\DataBase.xlsx"), null, true),
+				    Customer_Sheet = Fonte{[Item="Customer",Kind="Sheet"]}[Data],
+				    #"Cabeçalhos Promovidos" = Table.PromoteHeaders(Customer_Sheet, [PromoteAllScalars=true]),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(#"Cabeçalhos Promovidos",{{"CustomerKey", Int64.Type}, {"GeographyKey", Int64.Type}, {"BusinessType", type text}, {"Customer", type text}, {"NumberEmployees", Int64.Type}, {"AnnualRevenue", Int64.Type}, {"YearOpened", Int64.Type}}),
+				    #"Consultas Mescladas" = Table.NestedJoin(#"Tipo Alterado", {"GeographyKey"}, dimGeography, {"GeographyKey"}, "dimGeography", JoinKind.LeftOuter),
+				    #"dimGeography Expandido" = Table.ExpandTableColumn(#"Consultas Mescladas", "dimGeography", {"CityName", "StateCode", "StateName", "CountryCode", "CountryName", "RegionKey", "Region.1", "Continent"}, {"CityName", "StateCode", "StateName", "CountryCode", "CountryName", "RegionKey", "Region.1", "Continent"})
+				in
+				    #"dimGeography Expandido"
+
+	annotation PBI_ResultType = Exception
+

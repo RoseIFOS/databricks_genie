@@ -1,0 +1,29 @@
+{
+  "version": "3.1.1",
+  "author": {
+    "name": "MAQ Software",
+    "email": "support@maqsoftware.com"
+  },
+  "resources": [
+    {
+      "resourceId": "rId0",
+      "sourceType": 5,
+      "file": "resources/treemapbarchart333E076637E345EDB9829C52846D5A31.pbiviz.json"
+    }
+  ],
+  "visual": {
+    "guid": "treemapbarchart333E076637E345EDB9829C52846D5A31",
+    "name": "TreemapBarChartByMAQSoftware",
+    "displayName": "Treemap Bar Chart by MAQ Software",
+    "version": "3.1.1",
+    "description": "A treemap chart visual categorizes the data in groups and represent data in hierarchical structure",
+    "supportUrl": "https://github.com/maqsoftware/TreemapBarChart/issues",
+    "gitHubUrl": "https://github.com/maqsoftware/TreemapBarChart/",
+    "visualClassName": "TreemapBar"
+  },
+  "metadata": {
+    "pbivizjson": {
+      "resourceId": "rId0"
+    }
+  }
+}

@@ -1,0 +1,78 @@
+table auxClassRFM
+	isHidden
+	lineageTag: b0da272c-6690-4f32-a933-b8778a67a052
+
+	column Class
+		dataType: string
+		isHidden
+		lineageTag: d7ed4408-b13f-4de1-8afc-5d4bbd5e0b79
+		summarizeBy: none
+		sourceColumn: Class
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column RMin
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: afe476ab-8b46-414b-ab31-f728c964fb77
+		summarizeBy: sum
+		sourceColumn: RMin
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column RMax
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 1e8ef24b-99bd-43c3-a29e-cb8ec78025d2
+		summarizeBy: sum
+		sourceColumn: RMax
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FMMin
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 5c23f60e-03c0-46bb-a647-b30659f30b13
+		summarizeBy: sum
+		sourceColumn: FMMin
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column FMMax
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 9da4b9be-fbf6-495d-a767-5180637a8f8b
+		summarizeBy: sum
+		sourceColumn: FMMax
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition auxClassRFM-3f39b0f1-6478-4fbc-a998-8208df4415b1 = m
+		mode: import
+		source =
+				let
+				    Fonte = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("VVDBCsIwDP2V0vMOtVXE49jFg4iot7lDh8EVt2asGeLf23Wlm4WQhrz38pKy5EWju96gdTzjWx8H/+J3x6us5Cd05AvhQ6Y8N766ZcXoCDsYXOxHvkr8CxJYMh4aCCaoqQW5CeWEPAM8jX2xnAIDbZRUKU+onNjVuPfKkkyzjqaGwWryKlFZpjxP+PwZXi0sAjAYHrAzbpZQEbR08xpHYoTs1gL0K4fLYQptH6MQck9+ZQfs3oBNGum01Q8=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Class = _t, RMin = _t, RMax = _t, FMMin = _t, FMMax = _t]),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(Fonte,{{"Class", type text}, {"RMin", Int64.Type}, {"RMax", Int64.Type}, {"FMMin", Int64.Type}, {"FMMax", Int64.Type}})
+				in
+				    #"Tipo Alterado"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navegação
+

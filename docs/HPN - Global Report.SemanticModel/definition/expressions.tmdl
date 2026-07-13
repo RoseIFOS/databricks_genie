@@ -1,0 +1,70 @@
+expression ProductSubcategory =
+		let
+		    Fonte = Excel.Workbook(File.Contents("C:\Users\phg\Desktop\BootCamp\Squad\DataBase.xlsx"), null, true),
+		    ProductSubcategory_Sheet = Fonte{[Item="ProductSubcategory",Kind="Sheet"]}[Data],
+		    #"Cabeçalhos Promovidos" = Table.PromoteHeaders(ProductSubcategory_Sheet, [PromoteAllScalars=true]),
+		    #"Tipo Alterado" = Table.TransformColumnTypes(#"Cabeçalhos Promovidos",{{"ProductSubcategoryKey", Int64.Type}, {"SubcategoryName", type text}, {"CategoryName", type text}})
+		in
+		    #"Tipo Alterado"
+	lineageTag: 6a99137f-4a40-4152-840c-336445eb362c
+	queryGroup: 'Planilhas Mescladas'
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+
+expression Region =
+		let
+		    Fonte = Excel.Workbook(File.Contents("C:\Users\phg\Desktop\BootCamp\Squad\DataBase.xlsx"), null, true),
+		    Region_Sheet = Fonte{[Item="Region",Kind="Sheet"]}[Data],
+		    #"Cabeçalhos Promovidos" = Table.PromoteHeaders(Region_Sheet, [PromoteAllScalars=true]),
+		    #"Tipo Alterado" = Table.TransformColumnTypes(#"Cabeçalhos Promovidos",{{"RegionKey", Int64.Type}, {"Region", type text}, {"Country", type text}, {"Continent", type text}})
+		in
+		    #"Tipo Alterado"
+	lineageTag: 021d4674-120b-41dc-9eab-ffb7d01e8464
+	queryGroup: 'Planilhas Mescladas'
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+
+expression Caminho = "C:\Users\phg\Desktop\BootCamp\Squad" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 1371d0f6-6698-42e4-adc6-a199768b74a0
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Text
+
+expression dimGeography =
+		let
+		    Fonte = Excel.Workbook(File.Contents("C:\Users\phg\Desktop\BootCamp\Squad\DataBase.xlsx"), null, true),
+		    Geography_Sheet = Fonte{[Item="Geography",Kind="Sheet"]}[Data],
+		    #"Cabeçalhos Promovidos" = Table.PromoteHeaders(Geography_Sheet, [PromoteAllScalars=true]),
+		    #"Tipo Alterado" = Table.TransformColumnTypes(#"Cabeçalhos Promovidos",{{"GeographyKey", Int64.Type}, {"CityName", type text}, {"StateCode", type text}, {"StateName", type text}, {"CountryCode", type text}, {"CountryName", type text}, {"RegionKey", Int64.Type}}),
+		    #"Consultas Mescladas" = Table.NestedJoin(#"Tipo Alterado", {"RegionKey"}, Region, {"RegionKey"}, "Region", JoinKind.LeftOuter),
+		    #"Region Expandido" = Table.ExpandTableColumn(#"Consultas Mescladas", "Region", {"Region", "Continent"}, {"Region.1", "Continent"})
+		in
+		    #"Region Expandido"
+	lineageTag: d58ac70b-7c9e-442b-9439-c6ed08dd8bf4
+	queryGroup: 'Planilhas Mescladas'
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+
+expression fatSalesHeader =
+		let
+		    Fonte = Excel.Workbook(File.Contents("C:\Users\phg\Desktop\BootCamp\Squad\DataBase.xlsx"), null, true),
+		    SalesHeader_Sheet = Fonte{[Item="SalesHeader",Kind="Sheet"]}[Data],
+		    #"Cabeçalhos Promovidos" = Table.PromoteHeaders(SalesHeader_Sheet, [PromoteAllScalars=true]),
+		    #"Tipo Alterado" = Table.TransformColumnTypes(#"Cabeçalhos Promovidos",{{"SalesHeaderKey", Int64.Type}, {"SalesOrderNumber", type text}, {"OrderDate", type date}, {"DueDate", type date}, {"ShipDate", type date}, {"CustomerKey", Int64.Type}, {"RegionKey", Int64.Type}, {"DiscountAmount", type number}, {"TotalAmount", type number}, {"SalesAmount", type number}}),
+		    #"Personalização Adicionada" = Table.AddColumn(#"Tipo Alterado", "% Discount", each [DiscountAmount]/[TotalAmount])
+		in
+		    #"Personalização Adicionada"
+	lineageTag: 85afc8d9-6b3b-4cc2-9d7b-38a2662b7a29
+	queryGroup: 'Planilhas Mescladas'
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

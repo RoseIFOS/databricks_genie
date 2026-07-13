@@ -1,0 +1,115 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "ReportSection688b95ea8a88abc60196",
+  "displayName": "Overview",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "objects": {
+    "background": [
+      {
+        "properties": {
+          "image": {
+            "image": {
+              "name": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'Geral.png'"
+                  }
+                }
+              },
+              "url": {
+                "expr": {
+                  "ResourcePackageItem": {
+                    "PackageName": "RegisteredResources",
+                    "PackageType": 1,
+                    "ItemName": "Geral9451146570829618.png"
+                  }
+                }
+              },
+              "scaling": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'Fit'"
+                  }
+                }
+              }
+            }
+          },
+          "transparency": {
+            "expr": {
+              "Literal": {
+                "Value": "0D"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "outspace": [
+      {
+        "properties": {
+          "image": {
+            "image": {
+              "name": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'bg.png'"
+                  }
+                }
+              },
+              "url": {
+                "expr": {
+                  "ResourcePackageItem": {
+                    "PackageName": "RegisteredResources",
+                    "PackageType": 1,
+                    "ItemName": "bg05344747839622532.png"
+                  }
+                }
+              },
+              "scaling": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'Fill'"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "visualInteractions": [
+    {
+      "source": "dc48e6e23a5730162099",
+      "target": "be434482d6c0caa4bdd4",
+      "type": "DataFilter"
+    },
+    {
+      "source": "8b444f77d0980cb8e61b",
+      "target": "dc48e6e23a5730162099",
+      "type": "HighlightFilter"
+    },
+    {
+      "source": "8b444f77d0980cb8e61b",
+      "target": "be434482d6c0caa4bdd4",
+      "type": "DataFilter"
+    },
+    {
+      "source": "0c53656e6653074ca8bc",
+      "target": "dc48e6e23a5730162099",
+      "type": "DataFilter"
+    },
+    {
+      "source": "0c53656e6653074ca8bc",
+      "target": "be434482d6c0caa4bdd4",
+      "type": "DataFilter"
+    },
+    {
+      "source": "0c53656e6653074ca8bc",
+      "target": "8b444f77d0980cb8e61b",
+      "type": "DataFilter"
+    }
+  ]
+}

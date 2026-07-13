@@ -1,0 +1,7 @@
+role Region
+	modelPermission: read
+
+	tablePermission auxRLS = [Email] = USERPRINCIPALNAME()
+
+	annotation PBI_Id = b293d9747fc14355a2c0ec96fc7b128a
+

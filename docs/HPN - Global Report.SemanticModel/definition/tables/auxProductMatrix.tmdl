@@ -1,0 +1,103 @@
+table auxProductMatrix
+	isHidden
+	lineageTag: 9b4715c6-ded7-4efc-9919-98470342cd40
+
+	column QuadrantID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b012a30a-6467-4b47-b9f9-51dd98f113fa
+		summarizeBy: count
+		sourceColumn: QuadrantID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quadrant
+		dataType: string
+		isHidden
+		lineageTag: aca71857-b5b7-4c06-a913-b190cf37981e
+		summarizeBy: none
+		sourceColumn: Quadrant
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column xLow
+		dataType: double
+		isHidden
+		lineageTag: d1a0fccb-4d28-4cf0-995b-300a41be6786
+		summarizeBy: sum
+		sourceColumn: xLow
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column xHigh
+		dataType: double
+		isHidden
+		lineageTag: 502a7093-7c1f-45c4-a18a-9c62702f02ca
+		summarizeBy: sum
+		sourceColumn: xHigh
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column yLow
+		dataType: double
+		isHidden
+		lineageTag: 41ab45b1-1264-4ce0-b465-4d5c5823eb4e
+		summarizeBy: sum
+		sourceColumn: yLow
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column yHigh
+		dataType: double
+		isHidden
+		lineageTag: 1a39fae7-e6d7-40b4-a44d-d1010b71d4fd
+		summarizeBy: sum
+		sourceColumn: yHigh
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition auxProductMatrix-395c4434-9b6d-405e-b85f-46e421039aa8 = m
+		mode: import
+		source =
+				let
+				    Fonte = Table.FromList(
+				    {
+				[QuadrantID=1,Quadrant="Keep",xLow=0.1,xHigh=1,yLow=0.1,yHigh=1],
+				[QuadrantID=2,Quadrant="Increase margin",xLow=0.1,xHigh=1,yLow=0,yHigh=0.1],
+				[QuadrantID=3,Quadrant="Increase sales",xLow=0,xHigh=0.1,yLow=0.1,yHigh=1],
+				[QuadrantID=4,Quadrant="Evaluate products",xLow=0,xHigh=0.1,yLow=0,yHigh=0.1]
+				 },
+				    Record.FieldValues,
+				    {"QuadrantID", "Quadrant", "xLow", "xHigh","yLow","yHigh"}
+				),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(Fonte,{{"QuadrantID", Int64.Type}, {"Quadrant", type text}, {"xLow", type number}, {"xHigh", type number}, {"yLow", type number}, {"yHigh", type number}})
+				in
+				    #"Tipo Alterado"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,48 @@
+table dOrganization
+	lineageTag: 8e18395f-d45c-47f8-8b67-4018972a517e
+
+	column OrganizationKey
+		dataType: int64
+		formatString: 0
+		lineageTag: f8c18e63-e5d8-4b6e-ba0d-ac7f149040ce
+		summarizeBy: none
+		sourceColumn: OrganizationKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Organization
+		dataType: string
+		lineageTag: 138a7c6c-a8cf-4156-86bd-8b2eaa0febac
+		summarizeBy: none
+		sourceColumn: Organization
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column ParentOrganization
+		dataType: string
+		lineageTag: dc8cd6e1-bdc6-4c9a-9363-b924cbcbf21e
+		summarizeBy: none
+		sourceColumn: ParentOrganization
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	partition dOrganization-87a7579e-ddfa-4e8a-bef1-cb1036655fda = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    Fonte = Excel.Workbook(File.Contents("C:\Users\phg\Desktop\BootCamp\Squad\DataBase.xlsx"), null, true),
+				    Organization_Sheet = Fonte{[Item="Organization",Kind="Sheet"]}[Data],
+				    #"Cabeçalhos Promovidos" = Table.PromoteHeaders(Organization_Sheet, [PromoteAllScalars=true]),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(#"Cabeçalhos Promovidos",{{"OrganizationKey", Int64.Type}, {"Organization", type text}, {"ParentOrganization", type text}})
+				in
+				    #"Tipo Alterado"
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

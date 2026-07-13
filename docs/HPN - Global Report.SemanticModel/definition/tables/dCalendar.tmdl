@@ -1,0 +1,282 @@
+table dCalendar
+	lineageTag: 531b2f0d-7e73-41b1-82d9-e1bf4874c6a3
+
+	column Index
+		dataType: int64
+		formatString: 0
+		lineageTag: 28f5b44f-e80d-47b3-bbec-4e2434fbf495
+		summarizeBy: sum
+		sourceColumn: Index
+
+		annotation SummarizationSetBy = Automatic
+
+	column DateId
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 745684fe-43db-4de6-a073-3b1e06c00b52
+		summarizeBy: none
+		sourceColumn: DateId
+
+		variation Variation
+			isDefault
+			relationship: ae6fc153-6a09-44e2-846a-1b497a3d95ee
+			defaultHierarchy: LocalDateTable_c56ebbb1-2271-4ee4-a8c8-03e03ee13936.'Hierarquia de datas'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Year
+		dataType: int64
+		formatString: 0
+		lineageTag: 5c030ed7-c30e-4c57-9611-f53ee37b061c
+		summarizeBy: sum
+		sourceColumn: Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month
+		dataType: int64
+		formatString: 0
+		lineageTag: c43f8294-8f71-449e-8023-03790195610e
+		summarizeBy: sum
+		sourceColumn: Month
+
+		annotation SummarizationSetBy = Automatic
+
+	column Day
+		dataType: int64
+		formatString: 0
+		lineageTag: 6cfea027-536b-4861-a56e-939d2c20fd49
+		summarizeBy: sum
+		sourceColumn: Day
+
+		annotation SummarizationSetBy = Automatic
+
+	column DaysInMonth
+		dataType: int64
+		formatString: 0
+		lineageTag: 3b5fd830-b12a-4e9f-b2fe-46d363dd4c7d
+		summarizeBy: sum
+		sourceColumn: DaysInMonth
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthName
+		dataType: string
+		lineageTag: 2d5406e8-ca23-47ff-8491-e280f85b2fff
+		summarizeBy: none
+		sourceColumn: MonthName
+		sortByColumn: Month
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column ShortMonthName
+		dataType: string
+		lineageTag: a6522de8-e938-4ab7-b8cf-bcfdc85179b7
+		summarizeBy: none
+		sourceColumn: ShortMonthName
+		sortByColumn: Month
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column DayOfWeek
+		dataType: int64
+		formatString: 0
+		lineageTag: 78b0592e-0a42-4bcd-aa2e-f0763ebdd78f
+		summarizeBy: sum
+		sourceColumn: DayOfWeek
+
+		annotation SummarizationSetBy = Automatic
+
+	column BusinessDay
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 45c2b285-7bcf-4d2c-802d-1d032127118c
+		summarizeBy: none
+		sourceColumn: BusinessDay
+
+		annotation SummarizationSetBy = Automatic
+
+	column DayOfWeekName
+		dataType: string
+		lineageTag: 438c2576-cdf2-4761-b6e5-4cde0e67fe13
+		summarizeBy: none
+		sourceColumn: DayOfWeekName
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column DayOfWeekShortName
+		dataType: string
+		lineageTag: 76e5d048-1382-40e6-b1e1-4053c0aa7c08
+		summarizeBy: none
+		sourceColumn: DayOfWeekShortName
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column Day/Month
+		dataType: string
+		lineageTag: c15c12a8-674b-49c6-93ea-09dd1e67b464
+		summarizeBy: none
+		sourceColumn: Day/Month
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column Month/Year
+		dataType: string
+		lineageTag: 5ac625e9-9dbc-4ecf-8558-6322758a936a
+		summarizeBy: none
+		sourceColumn: Month/Year
+		sortByColumn: YearMonthNumber
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column MonthName/Year
+		dataType: string
+		lineageTag: bea73173-883a-4efd-ba84-d294ae36d55b
+		summarizeBy: none
+		sourceColumn: MonthName/Year
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	column WeekOfMonth
+		dataType: int64
+		formatString: 0
+		lineageTag: ac60adc0-399b-4f5e-890b-ffac80fe86d9
+		summarizeBy: sum
+		sourceColumn: WeekOfMonth
+
+		annotation SummarizationSetBy = Automatic
+
+	column WeekOfYear
+		dataType: int64
+		formatString: 0
+		lineageTag: 6cb7e997-be01-449a-a247-1212e3fdfeb8
+		summarizeBy: sum
+		sourceColumn: WeekOfYear
+
+		annotation SummarizationSetBy = Automatic
+
+	column TwoMonth
+		dataType: int64
+		formatString: 0
+		lineageTag: 94f8e0bb-789d-4717-bc3e-4c7135385aa2
+		summarizeBy: sum
+		sourceColumn: TwoMonth
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quarter
+		dataType: int64
+		formatString: 0
+		lineageTag: 9f9b37ec-de34-4790-85ec-ec903495b81e
+		summarizeBy: sum
+		sourceColumn: Quarter
+
+		annotation SummarizationSetBy = Automatic
+
+	column HalfYear
+		dataType: int64
+		formatString: 0
+		lineageTag: 5f053c1e-6be5-4441-b8d2-c492757abee9
+		summarizeBy: sum
+		sourceColumn: HalfYear
+
+		annotation SummarizationSetBy = Automatic
+
+	column YearMonthNumber
+		dataType: int64
+		formatString: 0
+		lineageTag: dc8419d1-19b8-49ca-88b7-c6b0ee53fb97
+		summarizeBy: sum
+		sourceColumn: YearMonthNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column DateSerial
+		dataType: int64
+		formatString: 0
+		lineageTag: 9561db7c-6225-4214-81cb-a56adcd40ac1
+		summarizeBy: sum
+		sourceColumn: DateSerial
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'Year Hierarchy'
+		lineageTag: 8b331c80-a5da-45e3-a00b-22ad55ad0113
+
+		level Year
+			lineageTag: df331286-0595-4311-830a-708f43b84edd
+			column: Year
+
+		level Month
+			lineageTag: 4ced14c0-fa80-41b9-a665-16267b78aea1
+			column: Month
+
+		level ShortMonthName
+			lineageTag: 7217d281-80ea-424d-871a-f3213b626c0b
+			column: ShortMonthName
+
+	partition dCalendar-9226f180-1803-4dcf-980a-a981855deb19 = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				/*
+				Dim Date English
+				Author:      Wanderlei Hüttel
+				Last Update: 18/09/2020
+				*/
+				
+				
+				let
+				    DateMin = List.Min(List.Buffer(fSalesDetails[OrderDate] & fSalesReturns[OrderDate])),
+				    DateMax = List.Max(List.Buffer(fSalesDetails[OrderDate] & fSalesReturns[OrderDate])),
+				    YearMin = Date.Year(DateMin),
+				    YearMax = Date.Year(DateMax),
+				    StartDate = #date(YearMin,1,1),
+				    EndDate = #date(YearMax,12,31),
+				    Duration = Duration.Days(EndDate - StartDate) + 1,
+				    ListDates = List.Sort(List.Dates(StartDate, Duration, #duration(1,0,0,0)), Order.Ascending),
+				    ListDatesToTable = Table.FromList(ListDates, Splitter.SplitByNothing(), {"DateId"}, null, ExtraValues.Error),
+				    ColumnIndex = Table.AddIndexColumn(ListDatesToTable, "Index", 1, 1),
+				    ChangeType = Table.TransformColumnTypes(ColumnIndex,{{"DateId", type date}, {"Index", Int64.Type}}),
+				    ReorderColumns = Table.Buffer(Table.ReorderColumns(ChangeType,{"Index", "DateId"})),
+				    ColumnYear = Table.AddColumn(ReorderColumns, "Year", each Date.Year([DateId]), Int64.Type),
+				    ColumnMonth = Table.AddColumn(ColumnYear, "Month", each Date.Month([DateId]), Int64.Type),
+				    ColumnDay = Table.AddColumn(ColumnMonth, "Day", each Date.Day([DateId]), Int64.Type),
+				    ColumnDaysInMonth = Table.AddColumn(ColumnDay, "DaysInMonth", each  Date.DaysInMonth([DateId]), Int64.Type),
+				    ColumnMonthName = Table.AddColumn(ColumnDaysInMonth, "MonthName", each Text.Proper(Date.MonthName([DateId], "en-US")), type text),
+				    ColumnShortMonthName = Table.AddColumn(ColumnMonthName, "ShortMonthName", each Text.Proper(Date.ToText([DateId],"MMM", "en-US")), type text),
+				    ColumnDayOfWeek = Table.AddColumn(ColumnShortMonthName, "DayOfWeek", each Date.DayOfWeek([DateId]), Int64.Type),
+				    ColumnBusinessDay = Table.AddColumn(ColumnDayOfWeek, "BusinessDay", each if not List.Contains({0,6}, [DayOfWeek]) then true else false, type logical),
+				    ColumnDayOfWeekName = Table.AddColumn(ColumnBusinessDay, "DayOfWeekName", each Text.Proper(Date.DayOfWeekName([DateId], "en-US")), type text),
+				    ColumnDayOfWeekShortName = Table.AddColumn(ColumnDayOfWeekName, "DayOfWeekShortName", each Text.Proper(Date.ToText([DateId],"ddd", "en-US")), type text),
+				    ColumnDayMonth= Table.AddColumn(ColumnDayOfWeekShortName, "Day/Month", each Date.ToText([DateId], "dd/MM"), type text),
+				    ColumnMonthYear= Table.AddColumn(ColumnDayMonth, "Month/Year", each Date.ToText([DateId], "MM/yyyy"), type text),
+				    ColumnMonthNameYear = Table.AddColumn(ColumnMonthYear, "MonthName/Year", each Text.Proper(Date.ToText([DateId], "MMMM/yyyy", "en-US")), type text),
+				    ColumnWeekOfMonth = Table.AddColumn(ColumnMonthNameYear, "WeekOfMonth", each Date.WeekOfMonth([DateId]), Int64.Type),
+				    ColumnWeekOfYear = Table.AddColumn(ColumnWeekOfMonth, "WeekOfYear", each Date.WeekOfYear([DateId]), Int64.Type),
+				    ColumnTwoMonth = Table.AddColumn(ColumnWeekOfYear, "TwoMonth", each if Number.Mod([Month],2) = 0 then [Month]/2 else ([Month]+1)/2, Int64.Type),
+				    ColumnQuarter = Table.AddColumn(ColumnTwoMonth, "Quarter", each Date.QuarterOfYear([DateId]), Int64.Type),
+				    ColumnHalfYear = Table.AddColumn(ColumnQuarter, "HalfYear", each if [Month] <= 6 then 1 else 2, Int64.Type),
+				    ColumnYearMonthNumber = Table.AddColumn(ColumnHalfYear, "YearMonthNumber", each Number.FromText(Date.ToText([DateId], "yyyyMM")), Int64.Type),
+				    ColumnDateSerial = Table.AddColumn(ColumnYearMonthNumber, "DateSerial", each Number.FromText(Date.ToText([DateId], "yyyyMMdd")), Int64.Type)
+				in
+				    ColumnDateSerial
+
+	annotation PBI_ResultType = Table
+
