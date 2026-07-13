@@ -17,6 +17,10 @@ dist/
 # Databricks
 .databricks/
 
+# Power BI (PBIP) — artefatos regeneraveis / por-maquina (nao sao fonte de verdade)
+**/.pbi/cache.abf
+**/.pbi/localSettings.json
+
 # Notas pessoais em PDF (contêm prints de credenciais) — nunca versionar.
 # Mantemos docs/manual_azure_novo/ (markdown) versionado.
 docs/manual_azure_antigo/
