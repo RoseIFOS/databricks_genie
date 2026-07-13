@@ -1,89 +1,181 @@
 # =============================================================================
-# METRIC VIEW — FINANCEIRO (DRE / Income Statement)
-# Tradução das medidas DAX financeiras (_Key Measures, displayFolder _Income Statement).
-# Fonte: gold.fct_finance (scenario = actual | budget) + dim_account (sign).
+# METRIC VIEW — FINANCEIRO (DRE / Income Statement)   (versão do formato: 1.1)
+# Tradução das medidas DAX financeiras (_Key Measures, folder _Income Statement).
+# ---------------------------------------------------------------------------
+# Espelho em git da metric view a ser deployada em hpn.4_semantic.mv_financeiro.
+# Segue o MESMO padrão do comercial: lê da view plana v_income_statement
+# (02_gold_views_financeiro.sql), onde os joins já foram feitos e o sinal contábil
+# já foi aplicado (signed_amount = amount * dim_account.sign). Por isso NÃO há
+# joins aqui. Comentários "#" são doc p/ humano; o Genie lê comment/display_name/
+# synonyms/format.
+#
+# 1.1: measures compostas usam MEASURE(`Nome`) em vez de reescrever fórmula.
+# Criação (UI): Catalog Explorer > 4_semantic > Create > Metric View > cola o YAML.
 # =============================================================================
-version: "0.1"
+version: 1.1
 
-source: hpn_prd.gold.fct_finance
-
-joins:
-  - name: account
-    source: hpn_prd.gold.dim_account
-    "on": source.account_key = account.account_key
-  - name: account_header
-    source: hpn_prd.gold.dim_account_header
-    "on": account.account_header_key = account_header.account_header_key
-  - name: organization
-    source: hpn_prd.gold.dim_organization
-    "on": source.organization_key = organization.organization_key
-  - name: department
-    source: hpn_prd.gold.dim_department_group
-    "on": source.department_group_key = department.department_group_key
-  - name: calendar
-    source: hpn_prd.gold.dim_calendar
-    "on": source.date_id = calendar.date_id
+source: hpn.`4_semantic`.v_income_statement
 
 dimensions:
   # ---- Tempo ----
   - name: Data
-    expr: calendar.date_id
+    expr: transaction_date
+    comment: Data do lançamento financeiro (grão diário).
+    format:
+      type: date
+      date_format: year_month_day
+
   - name: Ano
-    expr: calendar.year
+    expr: year
+    comment: Ano do lançamento (derivado da data via dim_calendar).
+
+  - name: Trimestre
+    expr: quarter
+    comment: Trimestre do lançamento (1-4).
+
   - name: Mes
-    expr: calendar.month_name
-  - name: AnoMes
-    expr: calendar.year_month_number
+    expr: month_name
+    comment: Nome do mês do lançamento (Janeiro..Dezembro).
+    display_name: Mês
+    synonyms:
+      - mes
+
   # ---- Estrutura da DRE ----
   - name: LinhaDRE
-    expr: account_header.detail
+    expr: account_header_name
+    comment: "Linha de topo da DRE (header da conta). Ex.: Receita, Custos, Despesas."
+    display_name: Linha da DRE
+    synonyms:
+      - linha dre
+      - grupo de conta
+
   - name: Conta
-    expr: account.account
+    expr: account_name
+    comment: Nome da conta contábil.
+    synonyms:
+      - account
+      - conta contábil
+
   - name: SubConta
-    expr: account.account_subheader
+    expr: account_subheader
+    comment: Subheader da conta (nível intermediário da DRE, abaixo da LinhaDRE).
+    display_name: Subconta
+    synonyms:
+      - subheader
+      - subconta
+
+  - name: TipoConta
+    expr: account_type
+    comment: Tipo da conta contábil.
+    display_name: Tipo de Conta
+
   # ---- Organização ----
   - name: Organizacao
-    expr: organization.organization_name
+    expr: organization_name
+    comment: Unidade organizacional do lançamento.
+    display_name: Organização
+    synonyms:
+      - organization
+      - unidade
+
+  - name: OrganizacaoPai
+    expr: parent_organization
+    comment: Organização-pai (nível acima na hierarquia organizacional).
+    display_name: Organização Pai
+
   - name: DepartmentGroup
-    expr: department.department_group_name
+    expr: department_group_name
+    comment: Grupo de departamentos do lançamento.
+    display_name: Grupo de Departamentos
+    synonyms:
+      - departamento
+      - department
+
+  # ---- Cenário ----
+  - name: Cenario
+    expr: scenario
+    comment: "Cenário do lançamento: 'actual' (realizado) ou 'budget' (orçado)."
+    display_name: Cenário
+    synonyms:
+      - scenario
+      - realizado
+      - orçado
 
 measures:
+  # ---- Base (signed_amount já tem o sinal contábil aplicado na view) ----
   - name: Total Amount Actual
-    expr: SUM(CASE WHEN source.scenario = 'actual' THEN source.amount * account.sign ELSE 0 END)
-    # DAX: CALCULATE(SUMX(fFinance, Amount*RELATED(dAccount[Sign])), Scenario="actual")
+    expr: SUM(CASE WHEN scenario = 'actual' THEN signed_amount END)
+    comment: "Valor realizado da DRE = soma de signed_amount no cenário 'actual'. signed_amount = amount * sign (sinal contábil da conta). Equivale ao DAX CALCULATE(SUMX(fFinance, Amount*RELATED(dAccount[Sign])), Scenario=\"actual\")."
+    display_name: Realizado
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+    synonyms:
+      - realizado
+      - actual
 
   - name: Total Amount Budget
-    expr: SUM(CASE WHEN source.scenario = 'budget' THEN source.amount * account.sign ELSE 0 END)
-    # DAX: CALCULATE(SUMX(fFinance, Amount*RELATED(dAccount[Sign])), Scenario="budget")
+    expr: SUM(CASE WHEN scenario = 'budget' THEN signed_amount END)
+    comment: "Valor orçado da DRE = soma de signed_amount no cenário 'budget'. Equivale ao DAX CALCULATE(SUMX(fFinance, Amount*RELATED(dAccount[Sign])), Scenario=\"budget\")."
+    display_name: Orçado
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+    synonyms:
+      - orçado
+      - budget
 
+  # ---- Compostas (1.1: reaproveitam as base via MEASURE()) ----
   - name: Budget Deviation
-    expr: >
-      SUM(CASE WHEN source.scenario = 'actual' THEN source.amount * account.sign
-               WHEN source.scenario = 'budget' THEN -source.amount * account.sign
-               ELSE 0 END)
-    # DAX: [Total Amount Actual] - [Total Amount Budget]
+    expr: MEASURE(`Total Amount Actual`) - MEASURE(`Total Amount Budget`)
+    comment: "Desvio orçamentário = Realizado - Orçado. Positivo = acima do orçado. Equivale ao DAX [Total Amount Actual]-[Total Amount Budget]."
+    display_name: Desvio Orçamentário
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+    synonyms:
+      - desvio
+      - variação orçamentária
 
   - name: Budget Deviation %
-    expr: >
-      SUM(CASE WHEN source.scenario = 'actual' THEN source.amount * account.sign
-               WHEN source.scenario = 'budget' THEN -source.amount * account.sign
-               ELSE 0 END)
-      / NULLIF(ABS(SUM(CASE WHEN source.scenario = 'budget' THEN source.amount * account.sign ELSE 0 END)), 0)
-    # DAX: DIVIDE([Budget Deviation], ABS([Total Amount Budget]))
-
-  - name: "% Vertical (VA)"
-    # Participação da linha sobre a receita bruta (AccountHeaderKey = 3 no modelo original).
-    # A base é calculada como total actual sem filtro de conta; ajuste o header conforme seu plano.
-    expr: >
-      SUM(CASE WHEN source.scenario = 'actual' THEN source.amount * account.sign ELSE 0 END)
-      / NULLIF(SUM(CASE WHEN source.scenario = 'actual' AND account_header.account_header_key = 3
-                        THEN source.amount * account.sign ELSE 0 END), 0)
-    # DAX: divide([Total Amount Actual], vallgrosssales)  (% VA)
+    expr: "MEASURE(`Budget Deviation`) / NULLIF(ABS(MEASURE(`Total Amount Budget`)), 0)"
+    comment: "Desvio orçamentário percentual = Budget Deviation / |Orçado|. Usa valor absoluto do orçado no denominador p/ o sinal do % refletir o do desvio. Equivale ao DAX DIVIDE([Budget Deviation], ABS([Total Amount Budget]))."
+    display_name: Desvio Orçamentário %
+    format:
+      type: percentage
+      decimal_places:
+        type: exact
+        places: 1
+    synonyms:
+      - desvio percentual
 
 # -----------------------------------------------------------------------------
 # NOTAS
-# - % Horizontal (% HA, variação vs mês anterior) e subtotais hierárquicos de DRE
-#   (medidas com ISINSCOPE/SWITCH no DAX) dependem de contexto de linha da matriz.
-#   No Genie/app trate via consultas com window (LAG por mês) — ver 02_functions.sql.
-# - O acesso a este metric view deve ser restrito ao grupo grp_financeiro (ver 03_rls.sql).
+# - % VA (Análise Vertical) NÃO entra nesta metric view. A DAX original usa
+#   CALCULATE([Total Amount Actual], dAccountHeader[AccountHeaderKey]=3, ALL(dAccount)):
+#   ela remove o filtro de CONTA só no denominador (cada linha ÷ total de Net Sales).
+#   Numa metric view a measure é avaliada dentro do GROUP BY — não há como ter
+#   numerador e denominador com contextos de filtro distintos. → tratar como trusted
+#   query no Genie. Base = AccountHeaderKey = 3 (que é NET SALES / Receita Líquida;
+#   o nome "vallgrosssales" no modelo Power BI é enganoso).
+# - % HA (Análise Horizontal, variação vs período anterior) e subtotais hierárquicos
+#   de DRE (medidas com ISINSCOPE/SWITCH no DAX) também dependem de contexto de linha
+#   da matriz → trusted query / window (LAG por mês) no Genie, não aqui.
+# - As 4 measures acima batem com a DAX simples do Power BI:
+#     Total Amount (Actual/Budget) = CALCULATE(SUMX(fFinance, Amount*Sign), Scenario=...)
+#     Budget Deviation   = [Total Amount Actual] - [Total Amount Budget]
+#     Budget Deviation % = DIVIDE([Budget Deviation], ABS([Total Amount Budget]))
+#   (A versão SWITCH/Subtotal do "Total Amount Actual" no PBI é só p/ a matriz visual;
+#    o valor agregado que o Genie precisa é a soma simples.)
+# - Acesso a esta metric view deve ser restrito ao grupo financeiro (ver 03_rls.sql).
+# - PENDENTE: rodar validações V1/V2/V3 de 02_gold_views_financeiro.sql antes de liberar.
 # =============================================================================

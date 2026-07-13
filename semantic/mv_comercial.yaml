@@ -1,13 +1,29 @@
 # =============================================================================
-# METRIC VIEW — COMERCIAL
+# METRIC VIEW — COMERCIAL   (versão do formato: 1.1)
 # Tradução das medidas DAX de vendas (_Key Measures) para Unity Catalog.
-# Criação (UI mais garantida):
-#   Catalog Explorer > 4_semantic > Create > Metric View > cola este YAML > nome mv_comercial.
-#   (ou via DDL CREATE VIEW ... WITH METRICS, se a versão suportar / Asset Bundle na Fase 10.)
+# ---------------------------------------------------------------------------
+# Este arquivo é o ESPELHO EM GIT da metric view deployada em
+#   hpn.4_semantic.mv_comercial
+# Fonte de verdade = a definição no Databricks. Ao alterar, edite aqui, recole na
+# UI (Catalog > 4_semantic > mv_comercial > editar definição) e valide.
+# Os comentários iniciados por "#" são documentação para humanos e são descartados
+# pelo Databricks no save — os metadados que o Genie lê vivem nos campos
+# `comment:`, `display_name:`, `synonyms:` e `format:`.
+#
+# Criação (UI): Catalog Explorer > 4_semantic > Create > Metric View > cola o YAML.
+#
+# NOTAS DE FORMATO 1.1 (por que este arquivo é assim):
+#   - version 1.1 habilita COMPOSABILIDADE: uma measure pode referenciar outra via
+#     MEASURE(`Nome`). Por isso Net Sales/Gross Margin/percentuais NÃO reescrevem a
+#     fórmula base — reaproveitam Gross Sales, Discounts, Returns, Cost of Sales.
+#     Mudou a base? As derivadas herdam automaticamente.
+#   - metadata semântica (display_name/synonyms/format) melhora dashboards e a
+#     interpretação do Genie (sinônimos = mais formas de o usuário perguntar).
+#
 # Fonte: 4_semantic.v_sales_transactions (transações unificadas venda/devolução, já
 #        denormalizadas + custo via lookup). Por isso NÃO há joins aqui.
 # =============================================================================
-version: 0.1
+version: 1.1
 
 source: hpn.`4_semantic`.v_sales_transactions
 
@@ -15,88 +31,267 @@ dimensions:
   # ---- Tempo ----
   - name: Data
     expr: order_date
+    comment: Data do pedido da transação (grão diário).
+    format:
+      type: date
+      date_format: year_month_day
+
   - name: Ano
     expr: order_year
+    comment: "Ano do pedido, derivado de order_date."
+
   - name: Mes
     expr: order_month
+    comment: "Mês do pedido como número (1-12), derivado de order_date."
+
   # ---- Cliente ----
   - name: Cliente
     expr: customer_name
+    comment: Nome do cliente (conta) que realizou a transação.
+    synonyms:
+      - customer
+      - conta
+
   - name: TipoNegocio
     expr: business_type
+    comment: "Tipo de negócio do cliente (ex.: Warehouse, Gym, Supplement Store). Segmenta clientes por canal/perfil."
+    display_name: Tipo de Negócio
+    synonyms:
+      - business type
+      - segmento
+
   # ---- Geografia ----
   - name: Regiao
     expr: region_name
+    comment: Região de vendas associada ao cliente.
+    display_name: Região
+    synonyms:
+      - region
+
   - name: Pais
     expr: country_name
+    comment: País do cliente.
+    display_name: País
+    synonyms:
+      - country
+      - pais
+
   - name: Cidade
     expr: city_name
+    comment: Cidade do cliente.
+    synonyms:
+      - city
+
   # ---- Produto ----
   - name: Categoria
     expr: category_name
+    comment: Categoria do produto.
+    synonyms:
+      - category
+
   - name: Subcategoria
     expr: subcategory_name
+    comment: Subcategoria do produto (nível abaixo de Categoria).
+    synonyms:
+      - subcategory
+
   - name: Produto
     expr: product_name
+    comment: Nome do produto.
+    synonyms:
+      - product
+      - produto
 
 measures:
-  # ---- Base ----
-  - name: Gross Sales           # DAX: SUMX(fSalesDetails, OrderQuantity*UnitPrice)
+  # ---- Base (agregações diretas sobre a view) ----
+  - name: Gross Sales
     expr: SUM(CASE WHEN transaction_type = 'sale' THEN gross_amount END)
-  - name: Returns               # DAX: SUMX(fSalesReturns, ReturnQuantity*UnitPrice)
-    expr: SUM(CASE WHEN transaction_type = 'return' THEN gross_amount END)
-  - name: Discounts             # DAX: SUM(fSalesDetails[Discount Amount])
-    expr: SUM(discount_amount)
-  - name: Cost of Sales         # DAX: SUMX(fSalesDetails, OrderQuantity*[Unit Cost])
-    expr: SUM(CASE WHEN transaction_type = 'sale' THEN quantity * unit_cost END)
-  - name: Quantity              # DAX: SUM(fSalesDetails[OrderQuantity])
-    expr: SUM(CASE WHEN transaction_type = 'sale' THEN quantity END)
-  - name: Customers Current     # DAX: DISTINCTCOUNT(fSalesDetails[CustomerKey])
-    expr: COUNT(DISTINCT CASE WHEN transaction_type = 'sale' THEN customer_key END)
+    comment: "Vendas brutas = quantidade x preço unitário, somente linhas de venda. NÃO desconta descontos nem devoluções. Equivale ao DAX SUMX(fSalesDetails, OrderQuantity*UnitPrice)."
+    display_name: Vendas Brutas
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+    synonyms:
+      - vendas brutas
+      - revenue bruto
 
-  # ---- Compostas (reescritas inline: metric view não referencia outra measure) ----
-  - name: Net Sales             # DAX: [Gross Sales]-[Discounts]-[Returns]
-    expr: >
-      SUM(CASE WHEN transaction_type = 'sale' THEN gross_amount END)
-      - SUM(discount_amount)
-      - SUM(CASE WHEN transaction_type = 'return' THEN gross_amount END)
-  - name: Gross Margin          # DAX: [Net Sales]-[Cost of Sales]
-    expr: >
-      SUM(CASE WHEN transaction_type = 'sale' THEN gross_amount END)
-      - SUM(discount_amount)
-      - SUM(CASE WHEN transaction_type = 'return' THEN gross_amount END)
-      - SUM(CASE WHEN transaction_type = 'sale' THEN quantity * unit_cost END)
+  - name: Returns
+    expr: SUM(CASE WHEN transaction_type = 'return' THEN gross_amount END)
+    comment: "Valor bruto de devoluções = quantidade devolvida x preço unitário. Equivale ao DAX SUMX(fSalesReturns, ReturnQuantity*UnitPrice)."
+    display_name: Devoluções
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+    synonyms:
+      - devoluções
+      - returns
+
+  - name: Discounts
+    expr: SUM(discount_amount)
+    comment: "Total de descontos concedidos nas vendas (valor já rateado à linha). Equivale ao DAX SUM(fSalesDetails[Discount Amount])."
+    display_name: Descontos
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+    synonyms:
+      - descontos
+
+  - name: Cost of Sales
+    expr: SUM(CASE WHEN transaction_type = 'sale' THEN quantity * unit_cost END)
+    comment: "Custo das vendas = quantidade vendida x custo unitário. É o custo DIRETO do produto (CMV), não inclui despesas operacionais. Equivale ao DAX SUMX(fSalesDetails, OrderQuantity*[Unit Cost])."
+    display_name: Custo das Vendas
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+    synonyms:
+      - CMV
+      - custo
+      - COGS
+
+  - name: Quantity
+    expr: SUM(CASE WHEN transaction_type = 'sale' THEN quantity END)
+    comment: "Quantidade total de unidades vendidas. Equivale ao DAX SUM(fSalesDetails[OrderQuantity])."
+    display_name: Quantidade
+    format:
+      type: number
+      decimal_places:
+        type: exact
+        places: 0
+    synonyms:
+      - quantidade
+      - qty
+
+  - name: Customers Current
+    expr: COUNT(DISTINCT CASE WHEN transaction_type = 'sale' THEN customer_key END)
+    comment: "Número de clientes DISTINTOS que compraram no recorte/período (não conta pedidos, conta clientes únicos). Equivale ao DAX DISTINCTCOUNT(fSalesDetails[CustomerKey])."
+    display_name: Clientes Ativos
+    format:
+      type: number
+      decimal_places:
+        type: exact
+        places: 0
+    synonyms:
+      - clientes
+      - customers
+
+  # ---- Compostas (1.1: reaproveitam as base via MEASURE(), sem duplicar fórmula) ----
+  - name: Net Sales
+    expr: MEASURE(`Gross Sales`) - MEASURE(`Discounts`) - MEASURE(`Returns`)
+    comment: "Vendas líquidas = Gross Sales - Discounts - Returns. Receita após descontos e devoluções. Equivale ao DAX [Gross Sales]-[Discounts]-[Returns]."
+    display_name: Vendas Líquidas
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+    synonyms:
+      - vendas líquidas
+      - net revenue
+
+  - name: Gross Margin
+    expr: MEASURE(`Net Sales`) - MEASURE(`Cost of Sales`)
+    comment: "Margem bruta = Net Sales - Cost of Sales. Lucro após o custo direto do produto, antes de despesas operacionais. Equivale ao DAX [Net Sales]-[Cost of Sales]."
+    display_name: Margem Bruta
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+    synonyms:
+      - margem bruta
+      - gross profit
 
   # ---- Percentuais (NULLIF protege /0) ----
-  - name: Gross Margin %        # DAX: DIVIDE([Gross Sales]-[Cost of Sales],[Gross Sales])
-    expr: >
-      (SUM(CASE WHEN transaction_type = 'sale' THEN gross_amount END)
-       - SUM(CASE WHEN transaction_type = 'sale' THEN quantity * unit_cost END))
-      / NULLIF(SUM(CASE WHEN transaction_type = 'sale' THEN gross_amount END), 0)
-  - name: Net Margin %          # DAX: DIVIDE([Net Sales]-[Cost of Sales],[Net Sales])
-    expr: >
-      (SUM(CASE WHEN transaction_type = 'sale' THEN gross_amount END) - SUM(discount_amount)
-       - SUM(CASE WHEN transaction_type = 'return' THEN gross_amount END)
-       - SUM(CASE WHEN transaction_type = 'sale' THEN quantity * unit_cost END))
-      / NULLIF(SUM(CASE WHEN transaction_type = 'sale' THEN gross_amount END) - SUM(discount_amount)
-       - SUM(CASE WHEN transaction_type = 'return' THEN gross_amount END), 0)
-  - name: "% Returns"           # DAX: DIVIDE([Returns],[Gross Sales])
-    expr: >
-      SUM(CASE WHEN transaction_type = 'return' THEN gross_amount END)
-      / NULLIF(SUM(CASE WHEN transaction_type = 'sale' THEN gross_amount END), 0)
-  - name: Avg Unit Price        # DAX: AVERAGE(fSalesDetails[UnitPrice])
+  - name: Gross Margin %
+    expr: "(MEASURE(`Gross Sales`) - MEASURE(`Cost of Sales`)) / NULLIF(MEASURE(`Gross Sales`), 0)"
+    comment: "Margem bruta percentual = (Gross Sales - Cost of Sales) / Gross Sales. Retorna NULL se Gross Sales for zero. Equivale ao DAX DIVIDE([Gross Sales]-[Cost of Sales],[Gross Sales])."
+    display_name: Margem Bruta %
+    format:
+      type: percentage
+      decimal_places:
+        type: exact
+        places: 1
+    synonyms:
+      - gross margin pct
+      - margem bruta percentual
+
+  - name: Net Margin %
+    expr: "(MEASURE(`Net Sales`) - MEASURE(`Cost of Sales`)) / NULLIF(MEASURE(`Net Sales`), 0)"
+    comment: "Margem líquida percentual = (Net Sales - Cost of Sales) / Net Sales. Diferente de Gross Margin %, considera descontos e devoluções também no denominador. Equivale ao DAX DIVIDE([Net Sales]-[Cost of Sales],[Net Sales])."
+    display_name: Margem Líquida %
+    format:
+      type: percentage
+      decimal_places:
+        type: exact
+        places: 1
+    synonyms:
+      - net margin pct
+      - margem líquida percentual
+
+  - name: '% Returns'
+    expr: "MEASURE(`Returns`) / NULLIF(MEASURE(`Gross Sales`), 0)"
+    comment: "Taxa de devolução = Returns / Gross Sales. Percentual do bruto vendido que foi devolvido. Equivale ao DAX DIVIDE([Returns],[Gross Sales])."
+    display_name: Taxa de Devolução
+    format:
+      type: percentage
+      decimal_places:
+        type: exact
+        places: 1
+    synonyms:
+      - taxa devolução
+      - return rate
+
+  # ---- Médias ----
+  - name: Avg Unit Price
     expr: AVG(CASE WHEN transaction_type = 'sale' THEN unit_price END)
-  - name: Avg Unit Cost         # DAX: AVERAGE(fSalesDetails[Unit Cost])
+    comment: "Preço unitário médio das linhas de venda. Equivale ao DAX AVERAGE(fSalesDetails[UnitPrice])."
+    display_name: Preço Unitário Médio
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+    synonyms:
+      - preço médio
+      - avg price
+
+  - name: Avg Unit Cost
     expr: AVG(CASE WHEN transaction_type = 'sale' THEN unit_cost END)
+    comment: "Custo unitário médio das linhas de venda. Equivale ao DAX AVERAGE(fSalesDetails[Unit Cost])."
+    display_name: Custo Unitário Médio
+    format:
+      type: currency
+      currency_code: USD
+      decimal_places:
+        type: exact
+        places: 2
+    synonyms:
+      - custo médio
+      - avg cost
 
 # -----------------------------------------------------------------------------
 # NOTAS DE TRADUÇÃO
-# - Time intelligence (YoY %, MoM %, Last 12M): NÃO vão no metric view.
-#   Faça via consulta com window functions ou funções SQL (ver 02_functions.sql)
-#   e cadastre como "example SQL" / trusted asset no Genie.
+# - Time intelligence (YoY %, MoM %, Last 12M): NÃO vão nesta metric view.
+#   Tratar como consulta com window function / trusted query no Genie (ver
+#   02_functions.sql). Revisitar quando montar os assets do Genie comercial.
 # - Classificação de clientes (RFM / Champions / At Risk / Lost): materializada
 #   em gold + funções (ver 02_functions.sql), não como measure.
-# - Formatação (USD vs quantidade) é responsabilidade do app / Genie instructions.
-# - unit_cost NULL (venda sem custo casado) subestima Cost of Sales e infla margem:
-#   validar na paridade vs Power BI antes de liberar.
+# - unit_cost NULL (venda sem custo casado) subestima Cost of Sales e infla margem.
+#   Validação de paridade (2026-07-13) mostrou 0,0% sem custo → risco NÃO se
+#   materializou; margens saem exatas.
 # =============================================================================
