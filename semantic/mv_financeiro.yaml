@@ -133,8 +133,8 @@ measures:
 
   # ---- Compostas (1.1: reaproveitam as base via MEASURE()) ----
   - name: Budget Deviation
-    expr: MEASURE(`Total Amount Actual`) - MEASURE(`Total Amount Budget`)
-    comment: "Desvio orçamentário = Realizado - Orçado. Positivo = acima do orçado. Equivale ao DAX [Total Amount Actual]-[Total Amount Budget]."
+    expr: COALESCE(MEASURE(`Total Amount Actual`), 0) - COALESCE(MEASURE(`Total Amount Budget`), 0)
+    comment: "Desvio orçamentário = Realizado - Orçado. Positivo = acima do orçado. Equivale ao DAX [Total Amount Actual]-[Total Amount Budget]. COALESCE(...,0) replica o DAX (BLANK=0): num recorte com só um cenário (só actual ou só budget), o SQL puro daria NULL na subtração — o COALESCE evita isso sem mudar valores não-nulos."
     display_name: Desvio Orçamentário
     format:
       type: currency

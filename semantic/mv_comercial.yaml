@@ -188,8 +188,8 @@ measures:
 
   # ---- Compostas (1.1: reaproveitam as base via MEASURE(), sem duplicar fórmula) ----
   - name: Net Sales
-    expr: MEASURE(`Gross Sales`) - MEASURE(`Discounts`) - MEASURE(`Returns`)
-    comment: "Vendas líquidas = Gross Sales - Discounts - Returns. Receita após descontos e devoluções. Equivale ao DAX [Gross Sales]-[Discounts]-[Returns]."
+    expr: COALESCE(MEASURE(`Gross Sales`), 0) - COALESCE(MEASURE(`Discounts`), 0) - COALESCE(MEASURE(`Returns`), 0)
+    comment: "Vendas líquidas = Gross Sales - Discounts - Returns. Receita após descontos e devoluções. Equivale ao DAX [Gross Sales]-[Discounts]-[Returns]. COALESCE(...,0) replica o comportamento do DAX (BLANK tratado como 0): num recorte sem um dos componentes (ex.: região sem devoluções), o SQL puro daria NULL na subtração inteira — o COALESCE evita isso sem alterar nenhum valor não-nulo."
     display_name: Vendas Líquidas
     format:
       type: currency
@@ -202,8 +202,8 @@ measures:
       - net revenue
 
   - name: Gross Margin
-    expr: MEASURE(`Net Sales`) - MEASURE(`Cost of Sales`)
-    comment: "Margem bruta = Net Sales - Cost of Sales. Lucro após o custo direto do produto, antes de despesas operacionais. Equivale ao DAX [Net Sales]-[Cost of Sales]."
+    expr: MEASURE(`Net Sales`) - COALESCE(MEASURE(`Cost of Sales`), 0)
+    comment: "Margem bruta = Net Sales - Cost of Sales. Lucro após o custo direto do produto, antes de despesas operacionais. Equivale ao DAX [Net Sales]-[Cost of Sales]. Cost of Sales protegido com COALESCE p/ recortes sem custo casado."
     display_name: Margem Bruta
     format:
       type: currency
@@ -217,7 +217,7 @@ measures:
 
   # ---- Percentuais (NULLIF protege /0) ----
   - name: Gross Margin %
-    expr: "(MEASURE(`Gross Sales`) - MEASURE(`Cost of Sales`)) / NULLIF(MEASURE(`Gross Sales`), 0)"
+    expr: "(COALESCE(MEASURE(`Gross Sales`), 0) - COALESCE(MEASURE(`Cost of Sales`), 0)) / NULLIF(MEASURE(`Gross Sales`), 0)"
     comment: "Margem bruta percentual = (Gross Sales - Cost of Sales) / Gross Sales. Retorna NULL se Gross Sales for zero. Equivale ao DAX DIVIDE([Gross Sales]-[Cost of Sales],[Gross Sales])."
     display_name: Margem Bruta %
     format:
@@ -230,7 +230,7 @@ measures:
       - margem bruta percentual
 
   - name: Net Margin %
-    expr: "(MEASURE(`Net Sales`) - MEASURE(`Cost of Sales`)) / NULLIF(MEASURE(`Net Sales`), 0)"
+    expr: "(MEASURE(`Net Sales`) - COALESCE(MEASURE(`Cost of Sales`), 0)) / NULLIF(MEASURE(`Net Sales`), 0)"
     comment: "Margem líquida percentual = (Net Sales - Cost of Sales) / Net Sales. Diferente de Gross Margin %, considera descontos e devoluções também no denominador. Equivale ao DAX DIVIDE([Net Sales]-[Cost of Sales],[Net Sales])."
     display_name: Margem Líquida %
     format:
@@ -243,7 +243,7 @@ measures:
       - margem líquida percentual
 
   - name: '% Returns'
-    expr: "MEASURE(`Returns`) / NULLIF(MEASURE(`Gross Sales`), 0)"
+    expr: "COALESCE(MEASURE(`Returns`), 0) / NULLIF(MEASURE(`Gross Sales`), 0)"
     comment: "Taxa de devolução = Returns / Gross Sales. Percentual do bruto vendido que foi devolvido. Equivale ao DAX DIVIDE([Returns],[Gross Sales])."
     display_name: Taxa de Devolução
     format:
