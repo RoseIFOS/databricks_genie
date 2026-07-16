@@ -43,7 +43,7 @@
 # COMMAND ----------
 
 # Remove widgets
-dbutils.widgets.removeAll()
+#dbutils.widgets.removeAll()
 
 
 # Cria os widgets (só na primeira execução; recriar é idempotente).
@@ -52,8 +52,8 @@ dbutils.widgets.text("horizon_months", "14", "Meses a prever")
 
 # Lê os valores (sempre vêm como string; convertemos o que for número).
 CATALOG = dbutils.widgets.get("catalog")
-#HORIZON = int(dbutils.widgets.get("horizon_months"))
-HORIZON = 14
+HORIZON = int(dbutils.widgets.get("horizon_months"))
+#HORIZON = 14
 
 
 # Onde vamos gravar o modelo e as previsões.
@@ -165,8 +165,6 @@ with mlflow.start_run(run_name="prophet_forecast_sales") as run:
 # MAGIC ativo do UC (permissões, lineage).
 
 # COMMAND ----------
-
-spark.sql("CREATE SCHEMA IF NOT EXISTS hpn.ml")
 
 
 result = mlflow.register_model(
