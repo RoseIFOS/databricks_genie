@@ -40,6 +40,18 @@ Adiciona **só estes 4** (navega em `hpn` → `4_semantic`):
 ⚠️ **Não** adiciona os fatos/dims crus do `3_gold` — menos ativos e mais curados =
 respostas melhores.
 
+**+ Tabelas de análise avançada (Fase 6)** — adiciona também as 3 de `hpn` → **`ml`**:
+- `forecast_sales` ← previsão de vendas (Prophet)
+- `reco_customer_actions` ← next-best-action por cliente (regras RFM)
+- `pvm_drivers` ← decomposição Preço×Volume×Mix
+
+Com elas cadastradas, o **próprio Genie responde** forecast/reco/PVM e **auto-plota** o
+gráfico — é o "caminho (a)" (Genie-nativo) da Fase 7. Validado 2026-07-16:
+- *"Qual a previsão de vendas dos próximos meses?"* → forecast + gráfico de área ✅
+- *"Por que a receita de whey mudou no último ano?"* → PVM YoY + barras vol/preço/mix ✅
+- *"O que fazer com os clientes At Risk?"* → reco (⚠️ pediu "At Risk" mas respondeu
+  "About to Sleep/reengajar"; falta 1 Example query de reco p/ ancorar o segmento — FAQ #3).
+
 **3. General Instructions** (aba **Instructions**)
 - Cola o bloco de texto de `comercial_instructions.md` (a partir de *"Você é o
   assistente..."* — o topo com `>` é só nota, não cola).

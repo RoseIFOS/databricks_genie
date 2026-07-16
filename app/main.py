@@ -92,11 +92,12 @@ def chat(body: ChatIn, request: Request):
         clean = ans.dataframe.astype(object).where(ans.dataframe.notna(), None)
         rows = clean.values.tolist()
 
-    # Análise avançada por intenção (forecast/causal/reco) — herda a lógica da Fase 10.
+    # Análise avançada por intenção (forecast/pvm/reco): lê as TABELAS ml.* (Fase 6),
+    # não Model Serving. O caminho "b" (app dedicado). OBO: passa o token do usuário.
     advanced = None
     intent = serving.detect_intent(body.question)
     if intent:
-        advanced = {"intent": intent, "result": _run_advanced(intent)}
+        advanced = {"intent": intent, "result": _run_advanced(intent, user_token(request))}
 
     # Persiste a resposta (não-crítico: falha aqui não quebra o chat).
     message_id = None
@@ -129,13 +130,13 @@ def feedback(body: FeedbackIn):
     return {"ok": True}
 
 
-def _run_advanced(intent: str) -> dict:
+def _run_advanced(intent: str, token: str | None) -> dict:
     try:
         if intent == "forecast":
-            return serving.forecast_sales()
-        if intent == "causal":
-            return serving.causal_drivers()
-        return serving.recommend()
+            return serving.forecast_sales(user_token=token)
+        if intent == "pvm":
+            return serving.pvm_drivers(user_token=token)
+        return serving.recommend(user_token=token)
     except Exception as e:  # noqa: BLE001
         return {"error": str(e)}
 

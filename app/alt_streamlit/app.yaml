@@ -9,18 +9,10 @@ command:
   - run
   - app.py
 
+# Caminho "a" (Genie-nativo): só precisa dos IDs dos Spaces. Sem Model Serving
+# e sem LakeBase — a análise avançada vem do próprio Genie (trusted assets ml.*).
 env:
-  - name: GENIE_SPACE_COMERCIAL
-    value: "01ef000000000000comercial"
-  - name: GENIE_SPACE_FINANCEIRO
-    value: "01ef000000000000financeiro"
-  - name: SERVING_FORECAST
-    value: "hpn-forecast-sales"
-  - name: SERVING_CAUSAL
-    value: "hpn-causal-drivers"
-  - name: SERVING_RECO
-    value: "hpn-reco-nba"
-  - name: LAKEBASE_HOST
-    value: "instance-xxxx.database.cloud.databricks.com"
-  - name: LAKEBASE_DB
-    value: "hpn_app"
+  - name: GENIE_SPACE_COMERCIAL          # "Sales and Customer Insights"
+    value: "01f18051e31d1bc4bad157b84c3a33ec"
+  - name: GENIE_SPACE_FINANCEIRO         # "Financial Performance Analysis"
+    value: "01f1807aaf5a19e494d430c3f176166d"

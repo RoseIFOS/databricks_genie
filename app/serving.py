@@ -1,44 +1,86 @@
 """
-Chamadas aos endpoints de Model Serving (Fase 6): forecast, causal, recomendação.
-Equivale aos nodes "Fase 10" do projeto original, agora como modelos servidos.
+Leitura das tabelas de ANÁLISE AVANÇADA (Fase 6): forecast, PVM, recomendação.
+
+DECISÃO DE ARQUITETURA (Fase 6): consumimos as TABELAS `ml.*` materializadas —
+NÃO Model Serving em tempo real. Motivo: custo. Endpoint always-on custa caro;
+tabela materializada é "só mais uma tabela" e o refresh é um job barato.
+(Ver ml/RUNBOOK_ml.md e docs/curso/fase6.md.)
+
+Este módulo é usado pelo app REACT (caminho "b" — app dedicado). O app Streamlit
+(caminho "a") não usa isto: lá o próprio Genie responde forecast/reco via trusted
+assets. As consultas rodam num SQL Warehouse serverless (id em DATABRICKS_WAREHOUSE_ID).
 """
 from __future__ import annotations
 
 import os
+
 from databricks.sdk import WorkspaceClient
 
-_w = WorkspaceClient()
+_CATALOG = os.environ.get("HPN_CATALOG", "hpn")
 
 
-def _query(endpoint: str, records: list[dict]) -> dict:
-    resp = _w.serving_endpoints.query(name=endpoint, dataframe_records=records)
-    # resp.predictions costuma trazer a saída do modelo
-    return getattr(resp, "predictions", resp.as_dict())
+def _query(sql: str, user_token: str | None = None) -> list[dict]:
+    """Executa SQL no warehouse e devolve lista de dicts (1 por linha)."""
+    w = WorkspaceClient(token=user_token) if user_token else WorkspaceClient()
+    resp = w.statement_execution.execute_statement(
+        warehouse_id=os.environ["DATABRICKS_WAREHOUSE_ID"],
+        statement=sql,
+        wait_timeout="30s",
+    )
+    schema = resp.manifest.schema
+    cols = [c.name for c in (schema.columns or [])]
+    data = (resp.result.data_array if resp.result else None) or []
+    return [dict(zip(cols, row)) for row in data]
 
 
-def forecast_sales(horizon_months: int = 6, region: str | None = None) -> dict:
-    """Previsão de vendas (modelo Prophet/AutoML servido)."""
-    endpoint = os.environ["SERVING_FORECAST"]
-    return _query(endpoint, [{"horizon": horizon_months, "region": region}])
+def forecast_sales(horizon_months: int = 6, user_token: str | None = None) -> dict:
+    """Previsão de vendas — lê a tabela ml.forecast_sales (gerada pelo Prophet)."""
+    sql = f"""
+        SELECT ds, forecast, forecast_lower, forecast_upper
+        FROM {_CATALOG}.ml.forecast_sales
+        ORDER BY ds
+    """
+    return {"table": "forecast_sales", "rows": _query(sql, user_token)}
 
 
-def causal_drivers(metric: str = "gross_margin", period: str | None = None) -> dict:
-    """Decomposição/inferência causal dos drivers de uma métrica (preço x volume x mix)."""
-    endpoint = os.environ["SERVING_CAUSAL"]
-    return _query(endpoint, [{"metric": metric, "period": period}])
+def pvm_drivers(year_month: int | None = None, comparison_type: str = "YoY",
+                user_token: str | None = None) -> dict:
+    """Decomposição Preço×Volume×Mix — lê ml.pvm_drivers (ex-'causal')."""
+    period = f"AND year_month = {int(year_month)}" if year_month else ""
+    ctype = "MoM" if comparison_type == "MoM" else "YoY"   # allowlist (evita injeção)
+    sql = f"""
+        SELECT year_month, subcategory, delta_revenue,
+               effect_volume, effect_price, effect_mix
+        FROM {_CATALOG}.ml.pvm_drivers
+        WHERE comparison_type = '{ctype}' {period}
+        ORDER BY abs(delta_revenue) DESC
+    """
+    return {"table": "pvm_drivers", "rows": _query(sql, user_token)}
 
 
-def recommend(customer_key: int | None = None, segment: str | None = None) -> dict:
-    """Next-best-action por cliente/segmento RFM."""
-    endpoint = os.environ["SERVING_RECO"]
-    return _query(endpoint, [{"customer_key": customer_key, "segment": segment}])
+def recommend(segment: str | None = None, user_token: str | None = None) -> dict:
+    """Next-best-action por cliente — lê ml.reco_customer_actions."""
+    # segment via parâmetro nomeado do warehouse evitaria injeção; aqui, como é uso
+    # interno e o valor não vem cru do usuário, mantemos simples com allowlist leve.
+    clause = ""
+    if segment and segment.replace(" ", "").isalpha():
+        clause = f"WHERE segment = '{segment}'"
+    sql = f"""
+        SELECT customer_key, segment, intent, suggested_lever, priority, gross_sales_12m
+        FROM {_CATALOG}.ml.reco_customer_actions
+        {clause}
+        ORDER BY CASE priority WHEN 'Alta' THEN 1 WHEN 'Média' THEN 2 ELSE 3 END,
+                 gross_sales_12m DESC
+        LIMIT 100
+    """
+    return {"table": "reco_customer_actions", "rows": _query(sql, user_token)}
 
 
-# Roteamento por palavra-chave (herda a ideia do route_sql_validator da Fase 10)
+# Roteamento por palavra-chave (o app React usa para decidir se dispara análise).
 KEYWORDS = {
-    "forecast":  ["previsão", "forecast", "projeção", "tendência futura"],
-    "causal":    ["por que", "por quê", "causa", "motivo", "explica"],
-    "reco":      ["recomend", "sugest", "o que fazer", "ação", "melhorar"],
+    "forecast": ["previsão", "forecast", "projeção", "tendência futura"],
+    "pvm":      ["por que", "por quê", "causa", "motivo", "explica", "variação"],
+    "reco":     ["recomend", "sugest", "o que fazer", "ação", "melhorar", "next best"],
 }
 
 

@@ -96,7 +96,7 @@ targets:
       host: https://adb-0000000000000000.0.azuredatabricks.net
     variables:
       catalog: hpn                        # mesmo catálogo da camada semântica (3_gold, 4_semantic)
-      warehouse_id: "REPLACE_COM_ID_DO_WAREHOUSE_DEV"
+      warehouse_id: "d9a63a6f162bbf87"
 
   # ---- Ambiente de produção ----
   prd:

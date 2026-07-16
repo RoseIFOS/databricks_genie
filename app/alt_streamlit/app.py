@@ -5,8 +5,9 @@
 Mantida aqui como opção de prototipagem rápida. Para usá-la, aponte o command
 do Databricks App para alt_streamlit/app.yaml.
 
-Reutiliza os MESMOS módulos compartilhados do diretório app/ (genie_client,
-serving, lakebase) — por isso o ajuste de sys.path abaixo.
+Reutiliza o módulo compartilhado `genie_client` do diretório app/ (por isso o
+ajuste de sys.path abaixo). Caminho "a" (Genie-nativo): NÃO usa serving/lakebase —
+a análise avançada vem do próprio Genie via trusted assets (contraste com o React).
 """
 from __future__ import annotations
 
@@ -21,8 +22,11 @@ import plotly.express as px
 import streamlit as st
 
 from genie_client import GenieClient
-import serving
-import lakebase
+
+# CAMINHO "a" (Genie-nativo): este app NÃO chama Model Serving nem lê as tabelas
+# ml.* diretamente. A análise avançada (forecast/reco/PVM) é respondida pelo PRÓPRIO
+# Genie, desde que as tabelas ml.* estejam cadastradas como trusted assets no Space.
+# Contraste didático com o React (caminho "b", que usa serving.py). Ver docs/curso.
 
 st.set_page_config(page_title="HPN • BI Conversacional", page_icon="📊", layout="wide")
 
@@ -58,18 +62,6 @@ def render_dataframe(df: pd.DataFrame) -> None:
         st.plotly_chart(px.bar(df, x=x, y=y, title=f"{y} por {x}"), use_container_width=True)
 
 
-def render_advanced(intent: str) -> None:
-    with st.spinner(f"Executando análise: {intent}..."):
-        if intent == "forecast":
-            out = serving.forecast_sales()
-        elif intent == "causal":
-            out = serving.causal_drivers()
-        else:
-            out = serving.recommend()
-    st.info(f"🔎 Análise **{intent}**")
-    st.json(out)
-
-
 def chat_tab(domain: str) -> None:
     cfg = DOMAINS[domain]
     state_key, hist_key = f"conv_{domain}", f"hist_{domain}"
@@ -103,9 +95,6 @@ def chat_tab(domain: str) -> None:
         if ans.sql:
             with st.expander("SQL gerado"):
                 st.code(ans.sql, language="sql")
-        intent = serving.detect_intent(prompt)
-        if intent:
-            render_advanced(intent)
 
     st.session_state[hist_key].append(
         {"role": "assistant", "content": ans.text, "df": ans.dataframe}

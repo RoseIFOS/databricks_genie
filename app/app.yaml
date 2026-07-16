@@ -18,20 +18,22 @@ command:
 
 env:
   # IDs dos dois Genie Spaces (URL do Space: .../genie/rooms/<SPACE_ID>)
-  - name: GENIE_SPACE_COMERCIAL
-    value: "01ef000000000000comercial"
-  - name: GENIE_SPACE_FINANCEIRO
-    value: "01ef000000000000financeiro"
+  - name: GENIE_SPACE_COMERCIAL          # "Sales and Customer Insights"
+    value: "01f18051e31d1bc4bad157b84c3a33ec"
+  - name: GENIE_SPACE_FINANCEIRO         # "Financial Performance Analysis"
+    value: "01f1807aaf5a19e494d430c3f176166d"
 
-  # Endpoints de Model Serving da Fase 6 (forecast / causal / recomendação)
-  - name: SERVING_FORECAST
-    value: "hpn-forecast-sales"
-  - name: SERVING_CAUSAL
-    value: "hpn-causal-drivers"
-  - name: SERVING_RECO
-    value: "hpn-reco-nba"
+  # Análise avançada (Fase 6): lemos as TABELAS ml.* via SQL Warehouse — NÃO
+  # Model Serving (decisão de custo). O ID do warehouse NÃO é chumbado aqui: vem
+  # do recurso "sql-warehouse" vinculado ao app em ../resources/app.yml (que por
+  # sua vez usa ${var.warehouse_id} do databricks.yml). valueFrom injeta o ID.
+  # (Se o deploy reclamar do valueFrom, alternativa é chumbar o warehouse id aqui.)
+  - name: DATABRICKS_WAREHOUSE_ID
+    valueFrom: "sql-warehouse"
+  - name: HPN_CATALOG
+    value: "hpn"
 
-  # LakeBase (estado do app)
+  # LakeBase (estado do app — Fase 8; o app roda sem, só sem histórico/feedback)
   - name: LAKEBASE_HOST
     value: "instance-xxxx.database.cloud.databricks.com"
   - name: LAKEBASE_DB
