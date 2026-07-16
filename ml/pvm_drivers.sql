@@ -131,11 +131,13 @@ COMMENT ON TABLE hpn.ml.pvm_drivers IS
 -- GROUP BY comparison_type, year_month
 -- HAVING abs(soma_efeitos - delta_real) > 0.01;
 --
--- 2) LEITURA: por que a receita mudou num mês (ex.: YoY de 2026-06)?
+-- 2) LEITURA: por que a receita mudou num mês (ex.: YoY de jun/2025)?
+--    ATENÇÃO ao escolher o mês: o histórico de VENDAS termina em nov/2025 (2026 só
+--    tem forecast, não venda) → use um year_month DENTRO do histórico, senão vem vazio.
 -- SELECT subcategory, round(delta_revenue,0) AS delta,
 --        round(effect_volume,0) AS vol, round(effect_price,0) AS preco,
 --        round(effect_mix,0) AS mix
 -- FROM hpn.ml.pvm_drivers
--- WHERE comparison_type = 'YoY' AND year_month = 202606
+-- WHERE comparison_type = 'YoY' AND year_month = 202506
 -- ORDER BY abs(delta_revenue) DESC;
 -- =============================================================================
