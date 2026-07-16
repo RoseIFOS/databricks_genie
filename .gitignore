@@ -21,13 +21,9 @@ dist/
 **/.pbi/cache.abf
 **/.pbi/localSettings.json
 
-# Notas pessoais em PDF (contêm prints de credenciais) — nunca versionar.
-# Mantemos docs/manual_azure_novo/ (markdown) versionado.
-docs/manual_azure_antigo/
-
-# Material do mini-curso — PRODUTO da autora, não vai no repo (conhecimento pago).
-# Docs operacionais (RUNBOOK_*, PLANO, READMEs) continuam versionados normalmente.
-docs/curso/
-
-# Conteúdo de marketing (posts/artigos) — ativo da autora, mantido local até publicar.
-docs/posts/
+# Toda a pasta docs/ é LOCAL — não versionar no repo técnico:
+#   - manual_azure_novo (estudo) · curso (produto) · posts (marketing)
+#   - "HPN - Global Report.*" (o Power BI de referência)
+# Removida do tracking em 2026-07-16 (git rm --cached; arquivos mantidos no disco).
+# Docs operacionais (RUNBOOK_*.md, PLANO_*, READMEs na raiz) seguem versionados.
+docs/
