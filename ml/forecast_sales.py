@@ -28,8 +28,9 @@
 
 # COMMAND ----------
 
-# %pip install prophet==1.1.5 mlflow>=2.16
-# dbutils.library.restartPython()
+# MAGIC %pip install "prophet>=1.1.6" mlflow>=2.16
+# MAGIC dbutils.library.restartPython()
+# MAGIC
 
 # COMMAND ----------
 
@@ -41,19 +42,28 @@
 
 # COMMAND ----------
 
+# Remove widgets
+dbutils.widgets.removeAll()
+
+
 # Cria os widgets (só na primeira execução; recriar é idempotente).
 dbutils.widgets.text("catalog", "hpn", "Catálogo Unity Catalog")
-dbutils.widgets.text("horizon_months", "6", "Meses a prever")
+dbutils.widgets.text("horizon_months", "14", "Meses a prever")
 
 # Lê os valores (sempre vêm como string; convertemos o que for número).
 CATALOG = dbutils.widgets.get("catalog")
-HORIZON = int(dbutils.widgets.get("horizon_months"))
+#HORIZON = int(dbutils.widgets.get("horizon_months"))
+HORIZON = 14
+
 
 # Onde vamos gravar o modelo e as previsões.
 # ATENÇÃO: no Unity Catalog, modelo registrado e tabela COMPARTILHAM o namespace do
 # schema — não podem ter o mesmo nome. Por isso o modelo leva o sufixo _model.
 MODEL_NAME = f"{CATALOG}.ml.forecast_sales_model"    # modelo registrado no UC (3 níveis)
 OUTPUT_TABLE = f"{CATALOG}.ml.forecast_sales"         # tabela Delta de previsões (nome distinto do modelo)
+
+#cria o schema antes de registrar o modelo (célula 4) e gravar a tabela (célula 5)
+spark.sql(f"CREATE SCHEMA IF NOT EXISTS {CATALOG}.ml")
 
 print(f"Catálogo: {CATALOG} | Horizonte: {HORIZON} meses")
 print(f"Modelo UC: {MODEL_NAME}")
@@ -76,7 +86,7 @@ import pandas as pd
 sdf = spark.sql(f"""
     SELECT
         date_trunc('month', s.order_date)  AS ds,
-        SUM(s.gross_sales)                 AS y
+        CAST(SUM(s.gross_sales) AS DOUBLE) AS y
     FROM {CATALOG}.`3_gold`.fct_sales_details s
     GROUP BY date_trunc('month', s.order_date)
     ORDER BY ds
@@ -111,6 +121,7 @@ mlflow.set_registry_uri("databricks-uc")
 
 with mlflow.start_run(run_name="prophet_forecast_sales") as run:
 
+
     # ---- Hiperparâmetros (logados para rastreabilidade) ----
     params = {
         "seasonality_mode": "multiplicative",   # sazonalidade proporcional ao nível
@@ -133,7 +144,14 @@ with mlflow.start_run(run_name="prophet_forecast_sales") as run:
     print(f"MAE in-sample: {mae:,.2f}")
 
     # ---- Loga o modelo no MLflow (assinatura ajuda no serving depois) ----
-    mlflow.prophet.log_model(model, artifact_path="model")
+    #mlflow.prophet.log_model(model, artifact_path="model")
+    from mlflow.models import infer_signature
+    signature = infer_signature(
+        df[["ds"]],
+        in_sample[["yhat", "yhat_lower", "yhat_upper"]],
+    )
+    mlflow.prophet.log_model(model, artifact_path="model", signature=signature)
+
 
     run_id = run.info.run_id
     print(f"Run MLflow: {run_id}")
@@ -147,6 +165,9 @@ with mlflow.start_run(run_name="prophet_forecast_sales") as run:
 # MAGIC ativo do UC (permissões, lineage).
 
 # COMMAND ----------
+
+spark.sql("CREATE SCHEMA IF NOT EXISTS hpn.ml")
+
 
 result = mlflow.register_model(
     model_uri=f"runs:/{run_id}/model",
