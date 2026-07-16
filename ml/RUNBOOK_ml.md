@@ -20,8 +20,8 @@ quando se precisa de inferência sob demanda (ex.: propensão por cliente no app
 | Entregável | Fonte | Tabela de saída | Estado |
 |---|---|---|---|
 | **Forecast** | histórico de vendas (`3_gold.fct_sales_details`) | `ml.forecast_sales` | ✅ rodou end-to-end (2026-07-16) |
-| **Recomendação** | `4_semantic.dim_customer_rfm` (Fase 3.3) | `ml.reco_customer_actions` (proposto) | ⬜ pendente |
-| **Causal** | decomposição de variação (preço×volume×mix) | `ml.causal_drivers` | ⬜ pendente |
+| **Recomendação** | `4_semantic.dim_customer_rfm` (Fase 3.3) | `ml.reco_customer_actions` | ✅ SQL escrito (validar no Databricks) |
+| **PVM** (ex-"Causal") | decomposição de variação (preço×volume×mix) | `ml.pvm_drivers` | ✅ SQL escrito (validar no Databricks) |
 
 ---
 
@@ -75,19 +75,40 @@ Não precisaram mudar:
 
 ---
 
-## Passo 2 — Recomendação (PENDENTE — retomar aqui)
+## Passo 2 — Recomendação (✅ SQL escrito — 2026-07-16)
 
-Não precisa de ML novo: tabela de **next-best-action por segmento** sobre
-`dim_customer_rfm` (ex.: Champions → upsell; At Risk → reativar; Lost → winback).
-Decisões a confirmar na retomada:
-- Mesmo padrão do forecast (notebook em `ml/` + job em `resources/`, grava `ml.*`)?
-- Regras por segmento (recomendado) vs modelo de propensão (ML, mais complexo)?
+`ml/reco_customer_actions.sql`: regras por segmento sobre `dim_customer_rfm` (SEM ML novo,
+decidido). Grava `ml.reco_customer_actions`, 1 linha/cliente. Decisões:
+- **Nicho importa:** HPN = Heavy Power Nutrition (loja de SUPLEMENTOS). Suplemento é
+  consumível de reposição (~1 mês/pote) → `recency_days` é sinal de RECOMPRA/lapso e
+  recorrência/assinatura é jogada central (o oposto de bem durável).
+- **Duas camadas na ação:** `intent` (intenção estratégica — reter/reconquistar/reengajar/
+  nutrir; vale em qualquer nicho) + `suggested_lever` (tática fit-suplemento). Assim a
+  parte que pode estar errada (tática) fica separada da que é sempre certa (intenção).
+- **Ressalva honesta:** o site não tem assinatura nem fidelidade hoje → táticas VIP/
+  assinatura são CAPACIDADES A CRIAR, sinalizado no `rationale`.
+- **Prioridade (b) = segmento + valor:** parte da prioridade-base do segmento e sobe 1
+  nível se o cliente é de alto valor (score `m >= 4` ⇒ `gross_sales_12m >= 200k`).
+- **Cobre os 11 segmentos** que a RFM gera (check: `WHERE intent IS NULL` deve dar 0).
 
-## Passo 3 — Causal (PENDENTE)
+## Passo 3 — PVM (✅ SQL escrito — 2026-07-16; ex-"Causal")
 
-Decomposição de variação de receita/margem em preço × volume × mix (waterfall), e/ou
-inferência causal (DoWhy/EconML) para drivers de margem. Saída: `ml.causal_drivers`.
-É o mais complexo dos três.
+`ml/pvm_drivers.sql`: decomposição Preço×Volume×Mix da variação de receita. Grava
+`ml.pvm_drivers`. **NÃO é ML nem inferência causal** — é aritmética de decomposição.
+Cortamos o DoWhy/EconML (o Genie já responde "onde mexeu"; PVM dá a ele UMA convenção
+fixa e correta). Tabela renomeada `causal_drivers` → `pvm_drivers` por honestidade.
+Decisões (detalhe completo no cabeçalho do .sql):
+- **Grão = subcategoria** (`dim_product.subcategory_name`); some p/ categoria/total.
+- **Mensal, não cravado:** decompõe todos os meses; `comparison_type` = MoM **e** YoY.
+- **"Preço" = preço médio realizado** por subcategoria = receita/quantidade.
+- **Mix = RESÍDUO** (`delta − volume − price`) → garante fechamento EXATO na variação de
+  receita e absorve subcategoria nova/descontinuada (que não tem preço-base). Trade-off:
+  mix vira meio "caixa-preta" (composição + entradas/saídas). Check de fechamento no .sql.
+- Colunas exigidas confirmadas no gold: `order_quantity`, `unit_price`, `gross_sales`,
+  `product_key`→`dim_product`. `gross_sales` é DECIMAL → CAST DOUBLE (pegadinha do forecast).
+
+> DoWhy/EconML (inferência causal de verdade — contrafactual com confundidores) ficou FORA
+> de escopo por decisão da usuária. Se um dia voltar, é um 4º entregável, não parte do PVM.
 
 ---
 
@@ -95,5 +116,7 @@ inferência causal (DoWhy/EconML) para drivers de margem. Saída: `ml.causal_dri
 - `databricks.yml` — bundle (catálogo, targets dev/prd, variáveis)
 - `resources/ml_forecast_job.yml` — Lakeflow Job do forecast (schedule diário 05:00)
 - `ml/forecast_sales.py` — notebook Prophet + MLflow + UC
+- `ml/reco_customer_actions.sql` — recomendação (regras RFM → `ml.reco_customer_actions`)
+- `ml/pvm_drivers.sql` — decomposição Preço×Volume×Mix (→ `ml.pvm_drivers`)
 - `app/serving.py` — chamadas aos endpoints de serving (Fase 7)
 - `GUIA_ASSET_BUNDLE.md` — guia do Asset Bundle
