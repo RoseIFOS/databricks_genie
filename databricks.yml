@@ -52,7 +52,7 @@ bundle:
 variables:
   catalog:
     description: "Catálogo Unity Catalog do ambiente (dev/prod)."
-    default: hpn_dev
+    default: hpn                          # dados reais (gold/semantic) vivem em `hpn`; separação dev/prd fica p/ Fase 10
 
   warehouse_id:
     description: "ID do SQL Warehouse serverless usado por Genie e pelo App."
@@ -95,7 +95,7 @@ targets:
       # TROQUE pela URL do SEU workspace Azure Databricks:
       host: https://adb-0000000000000000.0.azuredatabricks.net
     variables:
-      catalog: hpn_dev
+      catalog: hpn                        # mesmo catálogo da camada semântica (3_gold, 4_semantic)
       warehouse_id: "REPLACE_COM_ID_DO_WAREHOUSE_DEV"
 
   # ---- Ambiente de produção ----

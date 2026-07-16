@@ -42,7 +42,7 @@
 # COMMAND ----------
 
 # Cria os widgets (só na primeira execução; recriar é idempotente).
-dbutils.widgets.text("catalog", "hpn_dev", "Catálogo Unity Catalog")
+dbutils.widgets.text("catalog", "hpn", "Catálogo Unity Catalog")
 dbutils.widgets.text("horizon_months", "6", "Meses a prever")
 
 # Lê os valores (sempre vêm como string; convertemos o que for número).
@@ -50,8 +50,10 @@ CATALOG = dbutils.widgets.get("catalog")
 HORIZON = int(dbutils.widgets.get("horizon_months"))
 
 # Onde vamos gravar o modelo e as previsões.
-MODEL_NAME = f"{CATALOG}.ml.forecast_sales"          # nome no UC (3 níveis)
-OUTPUT_TABLE = f"{CATALOG}.ml.forecast_sales"         # tabela Delta de previsões
+# ATENÇÃO: no Unity Catalog, modelo registrado e tabela COMPARTILHAM o namespace do
+# schema — não podem ter o mesmo nome. Por isso o modelo leva o sufixo _model.
+MODEL_NAME = f"{CATALOG}.ml.forecast_sales_model"    # modelo registrado no UC (3 níveis)
+OUTPUT_TABLE = f"{CATALOG}.ml.forecast_sales"         # tabela Delta de previsões (nome distinto do modelo)
 
 print(f"Catálogo: {CATALOG} | Horizonte: {HORIZON} meses")
 print(f"Modelo UC: {MODEL_NAME}")
@@ -68,11 +70,14 @@ print(f"Modelo UC: {MODEL_NAME}")
 import pandas as pd
 
 # Consulta o gold via Spark SQL. Somamos vendas brutas por mês.
+# Usamos a coluna canônica `gross_sales` (= a definição oficial da camada, igual à
+# measure Gross Sales da metric view) em vez de recalcular order_quantity*unit_price.
+# Schema com dígito inicial (`3_gold`) exige backtick.
 sdf = spark.sql(f"""
     SELECT
-        date_trunc('month', s.order_date)       AS ds,
-        SUM(s.order_quantity * s.unit_price)     AS y
-    FROM {CATALOG}.gold.fct_sales_details s
+        date_trunc('month', s.order_date)  AS ds,
+        SUM(s.gross_sales)                 AS y
+    FROM {CATALOG}.`3_gold`.fct_sales_details s
     GROUP BY date_trunc('month', s.order_date)
     ORDER BY ds
 """)
