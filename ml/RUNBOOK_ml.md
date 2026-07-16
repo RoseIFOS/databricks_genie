@@ -20,8 +20,8 @@ quando se precisa de inferência sob demanda (ex.: propensão por cliente no app
 | Entregável | Fonte | Tabela de saída | Estado |
 |---|---|---|---|
 | **Forecast** | histórico de vendas (`3_gold.fct_sales_details`) | `ml.forecast_sales` | ✅ rodou end-to-end (2026-07-16) |
-| **Recomendação** | `4_semantic.dim_customer_rfm` (Fase 3.3) | `ml.reco_customer_actions` | ✅ SQL escrito (validar no Databricks) |
-| **PVM** (ex-"Causal") | decomposição de variação (preço×volume×mix) | `ml.pvm_drivers` | ✅ SQL escrito (validar no Databricks) |
+| **Recomendação** | `4_semantic.dim_customer_rfm` (Fase 3.3) | `ml.reco_customer_actions` | ✅ validado (2026-07-16) |
+| **PVM** (ex-"Causal") | decomposição de variação (preço×volume×mix) | `ml.pvm_drivers` | ✅ validado (2026-07-16) |
 
 ---
 
@@ -75,10 +75,11 @@ Não precisaram mudar:
 
 ---
 
-## Passo 2 — Recomendação (✅ SQL escrito — 2026-07-16)
+## Passo 2 — Recomendação (✅ validado — 2026-07-16)
 
-`ml/reco_customer_actions.sql`: regras por segmento sobre `dim_customer_rfm` (SEM ML novo,
-decidido). Grava `ml.reco_customer_actions`, 1 linha/cliente. Decisões:
+`ml/reco_customer_actions.ipynb`: regras por segmento sobre `dim_customer_rfm` (SEM ML novo,
+decidido). Grava `ml.reco_customer_actions`, 1 linha/cliente. Validado: check `intent IS
+NULL` = 0 (cobre os 11 segmentos). Decisões:
 - **Nicho importa:** HPN = Heavy Power Nutrition (loja de SUPLEMENTOS). Suplemento é
   consumível de reposição (~1 mês/pote) → `recency_days` é sinal de RECOMPRA/lapso e
   recorrência/assinatura é jogada central (o oposto de bem durável).
@@ -91,19 +92,21 @@ decidido). Grava `ml.reco_customer_actions`, 1 linha/cliente. Decisões:
   nível se o cliente é de alto valor (score `m >= 4` ⇒ `gross_sales_12m >= 200k`).
 - **Cobre os 11 segmentos** que a RFM gera (check: `WHERE intent IS NULL` deve dar 0).
 
-## Passo 3 — PVM (✅ SQL escrito — 2026-07-16; ex-"Causal")
+## Passo 3 — PVM (✅ validado — 2026-07-16; ex-"Causal")
 
-`ml/pvm_drivers.sql`: decomposição Preço×Volume×Mix da variação de receita. Grava
-`ml.pvm_drivers`. **NÃO é ML nem inferência causal** — é aritmética de decomposição.
+`ml/pvm_drivers.ipynb`: decomposição Preço×Volume×Mix da variação de receita. Grava
+`ml.pvm_drivers`. Validado: check de fechamento = 0 linhas (soma dos 3 efeitos = variação
+real em todo mês); leitura OK (ex.: YoY 202506). **NÃO é ML nem inferência causal** — é
+aritmética de decomposição.
 Cortamos o DoWhy/EconML (o Genie já responde "onde mexeu"; PVM dá a ele UMA convenção
 fixa e correta). Tabela renomeada `causal_drivers` → `pvm_drivers` por honestidade.
-Decisões (detalhe completo no cabeçalho do .sql):
+Decisões (detalhe completo nas células markdown do notebook):
 - **Grão = subcategoria** (`dim_product.subcategory_name`); some p/ categoria/total.
 - **Mensal, não cravado:** decompõe todos os meses; `comparison_type` = MoM **e** YoY.
 - **"Preço" = preço médio realizado** por subcategoria = receita/quantidade.
 - **Mix = RESÍDUO** (`delta − volume − price`) → garante fechamento EXATO na variação de
   receita e absorve subcategoria nova/descontinuada (que não tem preço-base). Trade-off:
-  mix vira meio "caixa-preta" (composição + entradas/saídas). Check de fechamento no .sql.
+  mix vira meio "caixa-preta" (composição + entradas/saídas). Check de fechamento no notebook.
 - Colunas exigidas confirmadas no gold: `order_quantity`, `unit_price`, `gross_sales`,
   `product_key`→`dim_product`. `gross_sales` é DECIMAL → CAST DOUBLE (pegadinha do forecast).
 
@@ -116,7 +119,7 @@ Decisões (detalhe completo no cabeçalho do .sql):
 - `databricks.yml` — bundle (catálogo, targets dev/prd, variáveis)
 - `resources/ml_forecast_job.yml` — Lakeflow Job do forecast (schedule diário 05:00)
 - `ml/forecast_sales.py` — notebook Prophet + MLflow + UC
-- `ml/reco_customer_actions.sql` — recomendação (regras RFM → `ml.reco_customer_actions`)
-- `ml/pvm_drivers.sql` — decomposição Preço×Volume×Mix (→ `ml.pvm_drivers`)
+- `ml/reco_customer_actions.ipynb` — recomendação (regras RFM → `ml.reco_customer_actions`)
+- `ml/pvm_drivers.ipynb` — decomposição Preço×Volume×Mix (→ `ml.pvm_drivers`)
 - `app/serving.py` — chamadas aos endpoints de serving (Fase 7)
 - `GUIA_ASSET_BUNDLE.md` — guia do Asset Bundle
