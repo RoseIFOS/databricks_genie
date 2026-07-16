@@ -73,6 +73,17 @@ include:
 
 
 # -----------------------------------------------------------------------------
+# 3b) SYNC — força subir o BUILD do React (app/frontend/dist), que está no
+#     .gitignore (build artifact). Sem isto o bundle respeita o .gitignore e o
+#     app é deployado SEM o frontend (só /api responde; tela vazia).
+#     Rode `npm run build` no app/frontend ANTES do deploy pra gerar o dist.
+# -----------------------------------------------------------------------------
+sync:
+  include:
+    - app/frontend/dist/**
+
+
+# -----------------------------------------------------------------------------
 # 4) TARGETS (AMBIENTES)
 #    Cada target é um "destino" de deploy. Note os dois MODES:
 #
@@ -92,8 +103,7 @@ targets:
     mode: development
     default: true                       # usado quando você não passa -t
     workspace:
-      # TROQUE pela URL do SEU workspace Azure Databricks:
-      host: https://adb-0000000000000000.0.azuredatabricks.net
+      host: https://adb-7405618602960947.7.azuredatabricks.net
     variables:
       catalog: hpn                        # mesmo catálogo da camada semântica (3_gold, 4_semantic)
       warehouse_id: "d9a63a6f162bbf87"

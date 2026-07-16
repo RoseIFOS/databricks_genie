@@ -22,6 +22,19 @@ resources:
       source_code_path: ../app
 
       # -----------------------------------------------------------------------
+      # OBO — escopos que o TOKEN DO USUÁRIO carrega (on-behalf-of-user).
+      # Sem 'genie' o Genie retorna 403 "Invalid scope, required scopes: genie".
+      # 'sql' é necessário p/ rodar a query no SQL Warehouse (Genie + serving.py).
+      # Os iam.* são os defaults (o /api/me usa current-user). Mudar escopos pode
+      # exigir que o usuário re-autorize o app no próximo acesso.
+      # -----------------------------------------------------------------------
+      user_api_scopes:
+        - iam.access-control:read
+        - iam.current-user:read
+        - sql
+        - genie
+
+      # -----------------------------------------------------------------------
       # RECURSOS QUE O APP CONSOME. O bundle concede as permissões e injeta
       # os identificadores para o código do app (via variáveis de ambiente/SDK).
       # -----------------------------------------------------------------------

@@ -36,35 +36,26 @@ resources:
               horizon_months: "14"
 
           # ---------------------------------------------------------------------
-          # COMPUTE: onde a task roda. Duas opções (escolha uma):
-          #
-          # (A) SERVERLESS (mais simples, recomendado p/ começar): basta declarar
-          #     um 'environment' com as libs. Descomente o bloco environments no
-          #     fim do arquivo e a linha abaixo, e REMOVA o job_cluster.
-          # environment_key: forecast_env
-          #
-          # (B) JOB CLUSTER dedicado (mais controle). Usado abaixo para você ver
-          #     como é. Sobe um cluster efêmero só para o job e o encerra ao fim.
+          # COMPUTE: SERVERLESS. Este workspace é serverless-only — job cluster
+          # clássico é REJEITADO no deploy ("Only serverless compute is supported
+          # in the workspace"). As libs vão no bloco 'environments' abaixo,
+          # referenciado por este environment_key.
           # ---------------------------------------------------------------------
-          job_cluster_key: forecast_cluster
-
-          # Bibliotecas Python instaladas no cluster para este notebook.
-          libraries:
-            - pypi:
-                package: "prophet==1.1.5"
-            - pypi:
-                package: "mlflow>=2.16"
+          environment_key: forecast_env
 
       # -----------------------------------------------------------------------
-      # DEFINIÇÃO DO JOB CLUSTER (referenciado por job_cluster_key acima)
+      # AMBIENTE SERVERLESS (referenciado por environment_key na task). As libs
+      # do notebook são declaradas aqui como dependencies. prophet>=1.1.6 =
+      # compatível com NumPy 2 (mesma correção do notebook; manter em sincronia
+      # com o %pip de lá — se um pin mudar, muda nos dois).
       # -----------------------------------------------------------------------
-      job_clusters:
-        - job_cluster_key: forecast_cluster
-          new_cluster:
-            spark_version: "15.4.x-cpu-ml-scala2.12"   # runtime ML (traz mlflow etc.)
-            node_type_id: "Standard_DS3_v2"            # tipo de VM no Azure
-            num_workers: 1
-            data_security_mode: "SINGLE_USER"          # necessário p/ acessar Unity Catalog
+      environments:
+        - environment_key: forecast_env
+          spec:
+            client: "1"
+            dependencies:
+              - prophet>=1.1.6
+              - mlflow>=2.16
 
       # -----------------------------------------------------------------------
       # SCHEDULE: quando roda. Em mode:development o bundle PAUSA isto sozinho.
@@ -90,14 +81,3 @@ resources:
         projeto: hpn_bi_genie
         dominio: comercial
         ambiente: ${bundle.target}
-
-# ---------------------------------------------------------------------------
-# (A) Bloco de ambiente serverless — descomente para usar em vez do job_cluster.
-# environments:
-#   - environment_key: forecast_env
-#     spec:
-#       client: "1"
-#       dependencies:
-#         - prophet==1.1.5
-#         - mlflow>=2.16
-# ---------------------------------------------------------------------------

@@ -11,6 +11,7 @@ Autenticação:
 """
 from __future__ import annotations
 
+import os
 import time
 from dataclasses import dataclass, field
 
@@ -32,8 +33,18 @@ class GenieClient:
 
     def __init__(self, space_id: str, user_token: str | None = None):
         self.space_id = space_id
-        # OBO: se houver token do usuário, as consultas herdam a RLS dele.
-        self.w = WorkspaceClient(token=user_token) if user_token else WorkspaceClient()
+        # OBO: com token do usuário, as consultas herdam a RLS dele. auth_type="pat"
+        # é OBRIGATÓRIO aqui — sem ele o SDK vê o token (pat) E o OAuth do SP no
+        # ambiente (DATABRICKS_CLIENT_ID/SECRET) e aborta: "more than one
+        # authorization method configured: oauth and pat".
+        if user_token:
+            self.w = WorkspaceClient(
+                host=os.environ.get("DATABRICKS_HOST"),
+                token=user_token,
+                auth_type="pat",
+            )
+        else:
+            self.w = WorkspaceClient()
 
     def ask(self, question: str, conversation_id: str | None = None,
             timeout_s: int = 120) -> GenieAnswer:

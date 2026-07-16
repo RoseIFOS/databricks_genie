@@ -21,7 +21,13 @@ _CATALOG = os.environ.get("HPN_CATALOG", "hpn")
 
 def _query(sql: str, user_token: str | None = None) -> list[dict]:
     """Executa SQL no warehouse e devolve lista de dicts (1 por linha)."""
-    w = WorkspaceClient(token=user_token) if user_token else WorkspaceClient()
+    # OBO: auth_type="pat" evita o conflito com o OAuth do SP no ambiente
+    # ("more than one authorization method configured: oauth and pat").
+    if user_token:
+        w = WorkspaceClient(host=os.environ.get("DATABRICKS_HOST"),
+                            token=user_token, auth_type="pat")
+    else:
+        w = WorkspaceClient()
     resp = w.statement_execution.execute_statement(
         warehouse_id=os.environ["DATABRICKS_WAREHOUSE_ID"],
         statement=sql,
