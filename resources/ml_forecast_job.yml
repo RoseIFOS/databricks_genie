@@ -31,7 +31,9 @@ resources:
             # Passamos o catálogo do ambiente para o notebook não ter hardcode.
             base_parameters:
               catalog: ${var.catalog}
-              horizon_months: "6"
+              # Histórico do gold termina em nov/2025; 14 meses cobre até jan/2027
+              # (i.e., 2026 inteiro, com folga). Validado manualmente em 2026-07-16.
+              horizon_months: "14"
 
           # ---------------------------------------------------------------------
           # COMPUTE: onde a task roda. Duas opções (escolha uma):

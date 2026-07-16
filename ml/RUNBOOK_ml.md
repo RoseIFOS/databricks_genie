@@ -19,7 +19,7 @@ quando se precisa de inferência sob demanda (ex.: propensão por cliente no app
 
 | Entregável | Fonte | Tabela de saída | Estado |
 |---|---|---|---|
-| **Forecast** | histórico de vendas (`3_gold.fct_sales_details`) | `ml.forecast_sales` | ✅ realinhado (2026-07-15) |
+| **Forecast** | histórico de vendas (`3_gold.fct_sales_details`) | `ml.forecast_sales` | ✅ rodou end-to-end (2026-07-16) |
 | **Recomendação** | `4_semantic.dim_customer_rfm` (Fase 3.3) | `ml.reco_customer_actions` (proposto) | ⬜ pendente |
 | **Causal** | decomposição de variação (preço×volume×mix) | `ml.causal_drivers` | ⬜ pendente |
 
@@ -36,7 +36,17 @@ quando se precisa de inferência sob demanda (ex.: propensão por cliente no app
 
 ---
 
-## Passo 1 — Forecast (realinhado em 2026-07-15)
+## Passo 1 — Forecast (✅ rodou end-to-end em 2026-07-16)
+
+Primeira execução real num catálogo limpo (`hpn`). O ciclo completo funcionou:
+treina → MLflow → registra no UC (`hpn.ml.forecast_sales_model`) → grava tabela
+`hpn.ml.forecast_sales`. Bugs de scaffold que a estreia desencavou (todos corrigidos):
+`gross_sales` é DECIMAL no gold → `CAST(... AS DOUBLE)`; `CREATE SCHEMA` movido p/ antes
+do `register_model`; UC exige `signature` no `log_model` (inferida do in-sample).
+Horizonte definido em **14 meses** (histórico termina em nov/2025 → cobre até jan/2027,
+i.e. 2026 inteiro); `horizon_months` no job YAML subiu de 6 → 14.
+
+### Realinhamento anterior (2026-07-15)
 
 O scaffold `ml/forecast_sales.py` existia mas estava STALE (escrito antes dos nomes se
 firmarem). Correções aplicadas:
