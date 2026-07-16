@@ -28,3 +28,6 @@ docs/manual_azure_antigo/
 # Material do mini-curso — PRODUTO da autora, não vai no repo (conhecimento pago).
 # Docs operacionais (RUNBOOK_*, PLANO, READMEs) continuam versionados normalmente.
 docs/curso/
+
+# Conteúdo de marketing (posts/artigos) — ativo da autora, mantido local até publicar.
+docs/posts/
