@@ -29,6 +29,21 @@
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC ## 0. Dependências
+# MAGIC O transporte de DADOS é Spark JDBC (não precisa de lib). Mas o DDL (criar
+# MAGIC schema/PK/índice) precisa de um cliente Postgres direto: `psycopg2`. Em compute
+# MAGIC **serverless** o acesso ao JVM (`_jvm`/Py4J) é bloqueado, então usamos psycopg2
+# MAGIC via `%pip` (biblioteca notebook-scoped). O `restartPython` ativa a lib — por
+# MAGIC isso esta célula vem ANTES de definir qualquer variável.
+
+# COMMAND ----------
+
+# MAGIC %pip install psycopg2-binary
+# MAGIC dbutils.library.restartPython()
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ## 1. Parâmetros e conexão
 # MAGIC Credenciais vêm do secret scope `hpn-db` (host/user/pwd) — as MESMAS da
 # MAGIC ingestão. Só o **database** muda: apontamos para `hpn_dw` (o secret
@@ -118,23 +133,27 @@ print(f"{len(TABLES)} tabelas no manifesto "
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 3. Helper de DDL (Py4J → driver JDBC já carregado)
+# MAGIC ## 3. Helper de DDL (psycopg2)
 # MAGIC O Spark JDBC só escreve DADOS; para rodar DDL (criar schema, PK, índice) abrimos
-# MAGIC uma conexão `java.sql.Connection` via Py4J, usando o MESMO driver postgres que
-# MAGIC já está no cluster (a ingestão o usa). Assim não precisamos de `pip install`.
+# MAGIC uma conexão Postgres direta com `psycopg2` (no driver do notebook). `autocommit`
+# MAGIC garante que cada comando persista. Serverless bloqueia o acesso ao JVM, por isso
+# MAGIC não dá para reusar o driver JDBC via Py4J aqui.
 
 # COMMAND ----------
 
+import psycopg2
+
 def run_ddl(statements):
     """Executa uma lista de comandos DDL/SQL no Postgres de destino."""
-    jvm = spark._sc._gateway.jvm
-    jvm.java.lang.Class.forName("org.postgresql.Driver")  # garante o driver registrado
-    conn = jvm.java.sql.DriverManager.getConnection(URL, USER, PWD)
+    conn = psycopg2.connect(
+        host=HOST, port=5432, dbname=TARGET_DB,
+        user=USER, password=PWD, sslmode="require",
+    )
     try:
-        stmt = conn.createStatement()
-        for s in statements:
-            stmt.execute(s)
-        stmt.close()
+        conn.autocommit = True
+        with conn.cursor() as cur:
+            for s in statements:
+                cur.execute(s)
     finally:
         conn.close()
 

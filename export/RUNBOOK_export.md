@@ -9,7 +9,9 @@ Notebook: [`export/dw_to_neon.py`](dw_to_neon.py) (formato Databricks-source, c�
 ## Pré-requisitos
 - Database `hpn_dw` criado no mesmo projeto Neon (mesmas credenciais do OLTP; só o nome muda).
 - Secret scope `hpn-db` com `kv-postgres-host` / `-user` / `-pwd` (os mesmos da ingestão).
-- Driver `org.postgresql.Driver` no cluster (a ingestão já depende dele).
+- Driver `org.postgresql.Driver` no cluster para o Spark JDBC de dados (a ingestão já depende dele).
+- Compute **serverless**: o DDL usa `psycopg2` via `%pip` (o notebook instala sozinho na célula 0),
+  porque serverless bloqueia acesso ao JVM/Py4J.
 
 ## Como rodar
 1. Abrir `export/dw_to_neon.py` como notebook no Databricks (Git folder).
@@ -22,7 +24,7 @@ Notebook: [`export/dw_to_neon.py`](dw_to_neon.py) (formato Databricks-source, c�
 |---|---|---|
 | Transporte | Spark JDBC | Delta gerenciada só é alcançável de dentro do Databricks. |
 | Modo | `overwrite` + `truncate=true` | TRUNCATE (não DROP) → **PK e índices sobrevivem** ao refresh. |
-| DDL | Py4J no driver JDBC | Sem `pip install psycopg2`; reusa driver/credencial da ingestão. |
+| DDL | `psycopg2` (`%pip`) | Serverless bloqueia o JVM/Py4J → cliente Postgres direto p/ criar schema/PK/índice. |
 | Schemas Neon | `gold`, `ml` | Espelha a medalhão sem o prefixo-dígito (`3_gold`). |
 | Integridade | Só PK + índices, **sem FK** | FK quebraria o TRUNCATE e a ordem de carga. Índices dão o join rápido. |
 | Conexões | `coalesce(1)` | Volume pequeno + teto de conexões do Neon → 1 conexão sequencial. |
