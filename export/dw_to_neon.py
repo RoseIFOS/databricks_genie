@@ -28,6 +28,16 @@
 
 # COMMAND ----------
 
+# 0. Dependências
+# psycopg2 via %pip (serverless bloqueia _jvm/Py4J);
+# restartPython ativa a lib → vem ANTES de definir variáveis.
+
+%pip install psycopg2-binary
+
+dbutils.library.restartPython()
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## 0. Dependências
 # MAGIC O transporte de DADOS é Spark JDBC (não precisa de lib). Mas o DDL (criar
@@ -144,7 +154,10 @@ print(f"{len(TABLES)} tabelas no manifesto "
 import psycopg2
 
 def run_ddl(statements):
+<<<<<<< Updated upstream
     """Executa uma lista de comandos DDL/SQL no Postgres de destino."""
+=======
+>>>>>>> Stashed changes
     conn = psycopg2.connect(
         host=HOST, port=5432, dbname=TARGET_DB,
         user=USER, password=PWD, sslmode="require",
@@ -156,6 +169,7 @@ def run_ddl(statements):
                 cur.execute(s)
     finally:
         conn.close()
+
 
 # Smoke test da conexão + criação dos schemas de destino.
 run_ddl([
@@ -177,10 +191,11 @@ print("Conexão OK — schemas gold e ml garantidos no Neon.")
 
 # COMMAND ----------
 
+# DBTITLE 1,Cell 10
 def write_data(src, dst):
-    (spark.table(src).coalesce(1).write.format("jdbc")
-        .option("url", URL).option("user", USER).option("password", PWD)
-        .option("driver", "org.postgresql.Driver")
+    (spark.table(src).coalesce(1).write.format("postgresql")
+        .option("host", HOST).option("port", "5432").option("database", TARGET_DB)
+        .option("user", USER).option("password", PWD)
         .option("dbtable", dst)
         .option("truncate", "true")   # overwrite = TRUNCATE (preserva PK/índices)
         .option("batchsize", 5000)
